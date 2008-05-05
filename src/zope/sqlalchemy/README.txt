@@ -37,84 +37,84 @@ Example
 This example is lifted directly from the SQLAlchemy declarative documentation.
 First the necessary imports.
 
-	>>> from sqlalchemy import *
-	>>> from sqlalchemy.ext.declarative import declarative_base
-	>>> from sqlalchemy.orm import scoped_session, sessionmaker, relation
-	>>> from zope.sqlalchemy import ZopeTransactionExtension, invalidate
-	>>> import transaction
+    >>> from sqlalchemy import *
+    >>> from sqlalchemy.ext.declarative import declarative_base
+    >>> from sqlalchemy.orm import scoped_session, sessionmaker, relation
+    >>> from zope.sqlalchemy import ZopeTransactionExtension, invalidate
+    >>> import transaction
 
 Now to define the mapper classes.
 
-	>>> Base = declarative_base()
-	>>> class User(Base):
-	...     __tablename__ = 'test_users'
-	...     id = Column('id', Integer, primary_key=True)
-	...     name = Column('name', String(50))
-	...     addresses = relation("Address", backref="user")
-	>>> class Address(Base):
-	...     __tablename__ = 'test_addresses'
-	...     id = Column('id', Integer, primary_key=True)
-	...     email = Column('email', String(50))
-	...     user_id = Column('user_id', Integer, ForeignKey('test_users.id'))
+    >>> Base = declarative_base()
+    >>> class User(Base):
+    ...     __tablename__ = 'test_users'
+    ...     id = Column('id', Integer, primary_key=True)
+    ...     name = Column('name', String(50))
+    ...     addresses = relation("Address", backref="user")
+    >>> class Address(Base):
+    ...     __tablename__ = 'test_addresses'
+    ...     id = Column('id', Integer, primary_key=True)
+    ...     email = Column('email', String(50))
+    ...     user_id = Column('user_id', Integer, ForeignKey('test_users.id'))
 
 Create an engine and setup the tables. Note that for this example to work a 
 recent version of sqlite/pysqlite is required. 3.4.0 seems to be sufficient.
 
-	>>> engine = create_engine(TEST_DSN, convert_unicode=True)
-	>>> Base.metadata.create_all(engine)
+    >>> engine = create_engine(TEST_DSN, convert_unicode=True)
+    >>> Base.metadata.create_all(engine)
 
 Now to create the session itself. As zope is a threaded web server we must use
 scoped sessions. Zope and SQLAlchemy sessions are tied together by using the
 ZopeTransactionExtension from this package.
 
-	>>> Session = scoped_session(sessionmaker(bind=engine, twophase=TEST_TWOPHASE,
-	... transactional=True, autoflush=True, extension=ZopeTransactionExtension()))
+    >>> Session = scoped_session(sessionmaker(bind=engine, twophase=TEST_TWOPHASE,
+    ... transactional=True, autoflush=True, extension=ZopeTransactionExtension()))
 
 Call the scoped session factory to retrieve a session. You may call this as
 many times as you like within a transaction and you will always retrieve the
 same session. At present there are no users in the database.
 
-	>>> session = Session()
-	>>> session.query(User).all()
-	[]
+    >>> session = Session()
+    >>> session.query(User).all()
+    []
 
 We can now create a new user and commit the changes using Zope's transaction
 machinary, just as Zope's publisher would.
 
-	>>> session.save(User(name='bob'))
-	>>> transaction.commit()
+    >>> session.save(User(name='bob'))
+    >>> transaction.commit()
 
 Engine level connections are outside the scope of the transaction integration.
 
-	>>> engine.connect().execute('SELECT * FROM test_users').fetchall()
-	[(1, ...'bob')]
+    >>> engine.connect().execute('SELECT * FROM test_users').fetchall()
+    [(1, ...'bob')]
 
 A new transaction requires a new session. Let's add an address.
 
-	>>> session = Session()
-	>>> bob = session.query(User).all()[0]
-	>>> bob.name
-	u'bob'
-	>>> bob.addresses
-	[]
-	>>> bob.addresses.append(Address(email='bob@bob.bob'))
-	>>> transaction.commit()
-	>>> session = Session()
-	>>> bob = session.query(User).all()[0]
-	>>> bob.addresses
-	[<Address object at ...>]
-	>>> bob.addresses[0].email
-	u'bob@bob.bob'
-	>>> bob.addresses[0].email = 'wrong@wrong'    
+    >>> session = Session()
+    >>> bob = session.query(User).all()[0]
+    >>> bob.name
+    u'bob'
+    >>> bob.addresses
+    []
+    >>> bob.addresses.append(Address(email='bob@bob.bob'))
+    >>> transaction.commit()
+    >>> session = Session()
+    >>> bob = session.query(User).all()[0]
+    >>> bob.addresses
+    [<Address object at ...>]
+    >>> bob.addresses[0].email
+    u'bob@bob.bob'
+    >>> bob.addresses[0].email = 'wrong@wrong'    
 
 To rollback a transaction, use transaction.abort().
 
-	>>> transaction.abort()
-	>>> session = Session()
-	>>> bob = session.query(User).all()[0]
-	>>> bob.addresses[0].email
-	u'bob@bob.bob'
-	>>> transaction.abort()
+    >>> transaction.abort()
+    >>> session = Session()
+    >>> bob = session.query(User).all()[0]
+    >>> bob.addresses[0].email
+    u'bob@bob.bob'
+    >>> transaction.abort()
 
 By default, zope.sqlalchemy puts sessions in an 'active' state when they are
 first used. ORM write operations automatically move the session into an
@@ -124,30 +124,30 @@ possible to guess whether such an operation is a read or a write. Therefore we
 must manually mark the session as invalidated when manual SQL statements write
 to the DB.
 
-	>>> session = Session()
-	>>> conn = session.connection()
-	>>> users = Base.metadata.tables['test_users']
-	>>> conn.execute(users.update(users.c.name=='bob'), name='ben')
-	<sqlalchemy.engine.base.ResultProxy object at ...>
-	>>> from zope.sqlalchemy import invalidate
-	>>> invalidate(session)
-	>>> transaction.commit()
-	>>> session = Session()
-	>>> session.query(User).all()[0].name
-	u'ben'
-	>>> transaction.abort()
+    >>> session = Session()
+    >>> conn = session.connection()
+    >>> users = Base.metadata.tables['test_users']
+    >>> conn.execute(users.update(users.c.name=='bob'), name='ben')
+    <sqlalchemy.engine.base.ResultProxy object at ...>
+    >>> from zope.sqlalchemy import invalidate
+    >>> invalidate(session)
+    >>> transaction.commit()
+    >>> session = Session()
+    >>> session.query(User).all()[0].name
+    u'ben'
+    >>> transaction.abort()
 
 If this is a problem you may tell the extension to place the session in the
 'invalidated' state initially.
 
     >>> Session.configure(extension=ZopeTransactionExtension('invalidated'))
     >>> Session.remove()
-	>>> session = Session()
-	>>> conn = session.connection()
-	>>> conn.execute(users.update(users.c.name=='ben'), name='bob')
-	<sqlalchemy.engine.base.ResultProxy object at ...>
-	>>> transaction.commit()
-	>>> session = Session()
-	>>> session.query(User).all()[0].name
-	u'bob'
-	>>> transaction.abort()
+    >>> session = Session()
+    >>> conn = session.connection()
+    >>> conn.execute(users.update(users.c.name=='ben'), name='bob')
+    <sqlalchemy.engine.base.ResultProxy object at ...>
+    >>> transaction.commit()
+    >>> session = Session()
+    >>> session.query(User).all()[0].name
+    u'bob'
+    >>> transaction.abort()
