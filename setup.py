@@ -8,8 +8,7 @@ version = '0.1'
 
 long_description = read('src', 'zope', 'sqlalchemy', 'README.txt') + """
 
-SVN version:
-<svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>
+`SVN version: <svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>`_.
 
 """
 
