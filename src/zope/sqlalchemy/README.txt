@@ -14,8 +14,6 @@ any sense. See http://sqlalchemy.org/docs/.
 Running the tests
 -----------------
 
-NOTE: Currently you must patch sqlalchemy with the included sqlalchemy.diff. Bug #1023
-
 This package is distributed as a buildout. Using your desired python run:
 
 $ python bootstrap.py

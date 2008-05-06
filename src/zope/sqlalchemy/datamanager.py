@@ -122,7 +122,7 @@ class TwoPhaseSessionDataManager(SessionDataManager):
 
     def tpc_abort(self, trans):
         if self.tx is not None: # we may not have voted, and been aborted already
-            self.tx._rollback_impl() # XXX change to self.tx.rollback() when #1024 fixed
+            self.tx.rollback()
             self.session.close()
             self.tx = self.session = None
             self.state = 'aborted commit'
