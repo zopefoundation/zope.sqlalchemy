@@ -6,10 +6,17 @@ def read(*rnames):
 
 version = '0.1'
 
+long_description = read('src', 'zope', 'sqlalchemy', 'README.txt') + """
+
+SVN version:
+<svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>
+
+"""
+
 setup(name='zope.sqlalchemy',
       version=version,
       description="Minimal Zope/SQLAlchemy transaction integration",
-      long_description=read('src', 'zope', 'sqlalchemy', 'README.txt'),
+      long_description=long_description,
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
         "Framework :: Zope3",
