@@ -8,8 +8,7 @@ version = '0.1'
 
 long_description = read('src', 'zope', 'sqlalchemy', 'README.txt') + """
 
-SVN version:
-<svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>
+`SVN version <svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>`_.
 
 """
 
@@ -27,7 +26,7 @@ setup(name='zope.sqlalchemy',
       keywords='',
       author='Laurence Rowe',
       author_email='laurence@lrowe.co.uk',
-      url='http://svn.zope.org/zope.sqlalchemy',
+      url='http://pypi.python.org/pypi/zope.sqlalchemy',
       license='ZPL 2.1',
       packages=find_packages('src'),
       package_dir = {'':'src'},
@@ -37,7 +36,7 @@ setup(name='zope.sqlalchemy',
       install_requires=[
           # -*- Extra requirements: -*-
           'setuptools',
-          'SQLAlchemy>=0.4.6.dev-r4655,==dev',
+          'SQLAlchemy>=0.4.6',
           'transaction',
           'zope.interface',
       ],

@@ -12,4 +12,6 @@
 #
 ##############################################################################
 
+__version__ = '0.1'
+
 from datamanager import ZopeTransactionExtension, invalidate
