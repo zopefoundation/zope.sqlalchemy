@@ -8,7 +8,7 @@ version = '0.1'
 
 long_description = read('src', 'zope', 'sqlalchemy', 'README.txt') + """
 
-`SVN version: <svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>`_.
+`SVN version <svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>`_.
 
 """
 
@@ -36,7 +36,7 @@ setup(name='zope.sqlalchemy',
       install_requires=[
           # -*- Extra requirements: -*-
           'setuptools',
-          'SQLAlchemy>=0.4.6.dev-r4655,==dev',
+          'SQLAlchemy>=0.4.6',
           'transaction',
           'zope.interface',
       ],
