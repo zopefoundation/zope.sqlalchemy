@@ -4,16 +4,21 @@ import sys, os
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-version = '0.1'
+def desc(*texts):
+    return '\n'.join(texts)
 
-long_description = read('src', 'zope', 'sqlalchemy', 'README.txt') + """
+SVN_VERSION = "`SVN version <svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>`_\n"
 
-`SVN version <svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>`_.
-
-"""
+long_description = desc(
+    read('README.txt'),
+    read('src', 'zope', 'sqlalchemy', 'README.txt'),
+    SVN_VERSION,
+    read('CHANGES.txt'),
+    'Download\n********\n',
+    )
 
 setup(name='zope.sqlalchemy',
-      version=version,
+      version='0.2dev',
       description="Minimal Zope/SQLAlchemy transaction integration",
       long_description=long_description,
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers

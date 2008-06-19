@@ -36,6 +36,9 @@ from zope.sqlalchemy import datamanager as tx
 TEST_TWOPHASE = bool(os.environ.get('TEST_TWOPHASE'))
 TEST_DSN = os.environ.get('TEST_DSN', 'sqlite:///:memory:')
 
+SA_0_4 = sa.__version__.split('.')[:2] == ['0', '4']
+SA_0_5 = not SA_0_4
+
 
 class SimpleModel(object):
     def __init__(self, **kw):
@@ -51,20 +54,31 @@ class Skill(SimpleModel): pass
 engine = sa.create_engine(TEST_DSN)
 engine2 = sa.create_engine(TEST_DSN)
 
-Session = orm.scoped_session(orm.sessionmaker(
-    bind=engine,
-    extension=tx.ZopeTransactionExtension(),
-    transactional=True,
-    autoflush=True,
-    twophase=TEST_TWOPHASE,
-    ))
+if SA_0_4:
+    Session = orm.scoped_session(orm.sessionmaker(
+        bind=engine,
+        extension=tx.ZopeTransactionExtension(),
+        transactional=True,
+        autoflush=True,
+        twophase=TEST_TWOPHASE,
+        ))
+    UnboundSession = orm.scoped_session(orm.sessionmaker(
+        extension=tx.ZopeTransactionExtension(),
+        transactional=True,
+        autoflush=True,
+        twophase=TEST_TWOPHASE,
+        ))
 
-UnboundSession = orm.scoped_session(orm.sessionmaker(
-    extension=tx.ZopeTransactionExtension(),
-    transactional=True,
-    autoflush=True,
-    twophase=TEST_TWOPHASE,
-    ))
+if SA_0_5:
+    Session = orm.scoped_session(orm.sessionmaker(
+        bind=engine,
+        extension=tx.ZopeTransactionExtension(),
+        twophase=TEST_TWOPHASE,
+        ))
+    UnboundSession = orm.scoped_session(orm.sessionmaker(
+        extension=tx.ZopeTransactionExtension(),
+        twophase=TEST_TWOPHASE,
+        ))
 
 metadata = sa.MetaData() # best to use unbound metadata
 
@@ -165,14 +179,14 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.save(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         
-        rows = query.order_by(query.table.c.id).all()
+        rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 2)
         row1 = rows[0]
         d = row1.asDict()
         self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
         
         # bypass the session machinary
-        stmt = sql.select(query.table.columns).order_by('id')
+        stmt = sql.select(test_users.columns).order_by('id')
         conn = session.connection()
         results = conn.execute(stmt)
         self.assertEqual(results.fetchall(), [(1, u'udo', u'juergens'), (2, u'heino', u'n/a')])
@@ -240,26 +254,26 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.save(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
 
-        rows = query.order_by(query.table.c.id).all()
+        rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 2)
         
         transaction.abort() # test that the abort really aborts
         session = Session()
         query = session.query(User)
-        rows = query.order_by(query.table.c.id).all()
+        rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 0)
         
         session.save(User(id=1, firstname='udo', lastname='juergens'))
         session.save(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
-        rows = query.order_by(query.table.c.id).all()
+        rows = query.order_by(User.id).all()
         row1 = rows[0]
         d = row1.asDict()
         self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
         
         transaction.commit()
 
-        rows = query.order_by(query.table.c.id).all()
+        rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 2)
         row1 = rows[0]
         d = row1.asDict()
@@ -282,7 +296,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         query = session.query(User)
         # lets just test that savepoints don't affect commits
         t = transaction.get()
-        rows = query.order_by(query.table.c.id).all()
+        rows = query.order_by(User.id).all()
 
         s1 = t.savepoint()
         session.delete(rows[1])
@@ -348,7 +362,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
                 session.save(User(id=2, firstname='heino', lastname='n/a'))
                 session.flush()
 
-                rows = query.order_by(query.table.c.id).all()
+                rows = query.order_by(User.id).all()
                 self.assertEqual(len(rows), 2)
                 row1 = rows[0]
                 d = row1.asDict()
@@ -403,5 +417,5 @@ def test_suite():
     for cls in (ZopeSQLAlchemyTests, MultipleEngineTests):
         suite.addTest(makeSuite(cls))
     suite.addTest(doctest.DocFileSuite('README.txt', optionflags=optionflags, tearDown=tearDownReadMe,
-        globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE}))
+        globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE, 'SA_0_4': SA_0_4, 'SA_0_5': SA_0_5}))
     return suite

@@ -1,6 +1,8 @@
-=================
- zope.sqlalchemy
-=================
+zope.sqlalchemy
+***************
+
+Introduction
+============
 
 The aim of this package is to unify the plethora of existing packages
 integrating SQLAlchemy with Zope's transaction management. As such it seeks
@@ -12,7 +14,7 @@ any sense. See http://sqlalchemy.org/docs/.
 
 
 Running the tests
------------------
+=================
 
 This package is distributed as a buildout. Using your desired python run:
 
@@ -30,7 +32,7 @@ setting the TEST_TWOPHASE variable to a non empty string. e.g:
 $ TEST_DSN=postgres://test:test@localhost/test TEST_TWOPHASE=True bin/test
 
 Example
--------
+=======
 
 This example is lifted directly from the SQLAlchemy declarative documentation.
 First the necessary imports.
@@ -65,8 +67,18 @@ Now to create the session itself. As zope is a threaded web server we must use
 scoped sessions. Zope and SQLAlchemy sessions are tied together by using the
 ZopeTransactionExtension from this package.
 
-    >>> Session = scoped_session(sessionmaker(bind=engine, twophase=TEST_TWOPHASE,
-    ... transactional=True, autoflush=True, extension=ZopeTransactionExtension()))
+    >>> if SA_0_5:
+    ...     Session = scoped_session(sessionmaker(bind=engine,
+    ...     twophase=TEST_TWOPHASE, extension=ZopeTransactionExtension()))
+
+The exact arguments depend on the version. Under SQLAlchemy 0.4 we must also
+supply transactional=True (equivalent to autocommit=False, which is default
+under 0.5).
+
+    >>> if SA_0_4:
+    ...     Session = scoped_session(sessionmaker(bind=engine,
+    ...     twophase=TEST_TWOPHASE, extension=ZopeTransactionExtension(),
+    ...     transactional=True, autoflush=True,))
 
 Call the scoped session factory to retrieve a session. You may call this as
 many times as you like within a transaction and you will always retrieve the

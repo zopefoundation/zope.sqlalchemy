@@ -1,0 +1,15 @@
+zope.sqlalchemy changes
+***********************
+
+0.2 (unreleased)
+================
+
+Features changes
+----------------
+
+* Updated to support SQLAlchemy 0.5.
+
+0.1
+===
+
+Initial public release.

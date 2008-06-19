@@ -43,11 +43,7 @@ class SessionDataManager(object):
     implements(ISavepointDataManager)
 
     def __init__(self, session, status):
-        if session.transactional:
-            self.tx = session.transaction._iterate_parents()[-1]
-        else:
-            assert session.transaction is None
-            self.tx = session.begin()
+        self.tx = session.transaction._iterate_parents()[-1]
         self.session = session
         _SESSION_STATE[id(session)] = status
         self.state = 'init'
