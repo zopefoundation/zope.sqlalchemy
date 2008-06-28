@@ -1,3 +1,1 @@
-***************
-zope.sqlalchemy
-***************
+Minimal Zope/SQLAlchemy transaction integration

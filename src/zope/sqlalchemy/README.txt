@@ -1,5 +1,9 @@
+***************
 zope.sqlalchemy
 ***************
+
+.. contents::
+   :local:
 
 Introduction
 ============
@@ -161,3 +165,9 @@ If this is a problem you may tell the extension to place the session in the
     >>> session.query(User).all()[0].name
     u'bob'
     >>> transaction.abort()
+
+Development version
+===================
+
+`SVN version <svn://svn.zope.org/repos/main/zope.sqlalchemy/trunk#egg=zope.sqlalchemy-dev>`_
+
