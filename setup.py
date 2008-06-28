@@ -18,7 +18,7 @@ long_description = desc(
     )
 
 setup(name='zope.sqlalchemy',
-      version='0.2dev',
+      version='0.2', # Remember to update __version__ in __init__.py
       description="Minimal Zope/SQLAlchemy transaction integration",
       long_description=long_description,
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
