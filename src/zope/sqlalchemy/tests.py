@@ -204,6 +204,13 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         t = transaction.get()
         self.failIf([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
              "Joined transaction too early")
+        session = Session()
+        session.save(User(id=1, firstname='udo', lastname='juergens'))
+        t = transaction.get()
+        # Expect this to fail with SQLAlchemy 0.4
+        self.failUnless([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+             "Not joined transaction")
+        transaction.abort()
         conn = Session().connection()
         self.failUnless([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
              "Not joined transaction")

@@ -179,6 +179,9 @@ class ZopeTransactionExtension(SessionExtension):
     def after_begin(self, session, transaction, connection):
         join_transaction(session, self.initial_state)
     
+    def after_attach(self, session, instance):
+        join_transaction(session, self.initial_state)
+    
     def after_flush(self, session, flush_context):
         invalidate(session)
     
