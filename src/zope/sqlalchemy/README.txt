@@ -44,7 +44,7 @@ First the necessary imports.
     >>> from sqlalchemy import *
     >>> from sqlalchemy.ext.declarative import declarative_base
     >>> from sqlalchemy.orm import scoped_session, sessionmaker, relation
-    >>> from zope.sqlalchemy import ZopeTransactionExtension, invalidate
+    >>> from zope.sqlalchemy import ZopeTransactionExtension
     >>> import transaction
 
 Now to define the mapper classes.
@@ -131,11 +131,11 @@ To rollback a transaction, use transaction.abort().
     >>> transaction.abort()
 
 By default, zope.sqlalchemy puts sessions in an 'active' state when they are
-first used. ORM write operations automatically move the session into an
-'invalidated' state. This avoids unnecessary database commits. Sometimes it
+first used. ORM write operations automatically move the session into a
+'changed' state. This avoids unnecessary database commits. Sometimes it
 is necessary to interact with the database directly through SQL. It is not
 possible to guess whether such an operation is a read or a write. Therefore we
-must manually mark the session as invalidated when manual SQL statements write
+must manually mark the session as changed when manual SQL statements write
 to the DB.
 
     >>> session = Session()
@@ -143,8 +143,8 @@ to the DB.
     >>> users = Base.metadata.tables['test_users']
     >>> conn.execute(users.update(users.c.name=='bob'), name='ben')
     <sqlalchemy.engine.base.ResultProxy object at ...>
-    >>> from zope.sqlalchemy import invalidate
-    >>> invalidate(session)
+    >>> from zope.sqlalchemy import mark_changed
+    >>> mark_changed(session)
     >>> transaction.commit()
     >>> session = Session()
     >>> session.query(User).all()[0].name
@@ -152,9 +152,9 @@ to the DB.
     >>> transaction.abort()
 
 If this is a problem you may tell the extension to place the session in the
-'invalidated' state initially.
+'changed' state initially.
 
-    >>> Session.configure(extension=ZopeTransactionExtension('invalidated'))
+    >>> Session.configure(extension=ZopeTransactionExtension('changed'))
     >>> Session.remove()
     >>> session = Session()
     >>> conn = session.connection()

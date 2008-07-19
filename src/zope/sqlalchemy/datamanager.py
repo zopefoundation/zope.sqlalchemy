@@ -20,8 +20,9 @@ from sqlalchemy.engine.base import Engine
 
 # The status of the session is stored on the connection info
 STATUS_ACTIVE = 'active' # session joined to transaction, writes allowed.
-STATUS_INVALIDATED = 'invalidated' # data has been written
+STATUS_CHANGED = 'changed' # data has been written
 STATUS_READONLY = 'readonly' # session joined to transaction, no writes allowed.
+STATUS_INVALIDATED = STATUS_CHANGED # BBB
 
 NO_SAVEPOINT_SUPPORT = set(['sqlite'])
 
@@ -160,11 +161,11 @@ def join_transaction(session, initial_state=STATUS_ACTIVE):
         DataManager = session.twophase and TwoPhaseSessionDataManager or SessionDataManager
         zope_transaction.get().join(DataManager(session, initial_state))
 
-def invalidate(session):
+def mark_changed(session):
     """Mark a session as needing to be committed
     """
     assert _SESSION_STATE[id(session)] is not STATUS_READONLY
-    _SESSION_STATE[id(session)] = STATUS_INVALIDATED
+    _SESSION_STATE[id(session)] = STATUS_CHANGED
 
 
 class ZopeTransactionExtension(SessionExtension):
@@ -173,6 +174,7 @@ class ZopeTransactionExtension(SessionExtension):
     """
     
     def __init__(self, initial_state=STATUS_ACTIVE):
+        if initial_state=='invalidated': initial_state = STATUS_CHANGED #BBB
         SessionExtension.__init__(self)
         self.initial_state = initial_state
     
@@ -183,7 +185,7 @@ class ZopeTransactionExtension(SessionExtension):
         join_transaction(session, self.initial_state)
     
     def after_flush(self, session, flush_context):
-        invalidate(session)
+        mark_changed(session)
     
     def before_commit(self, session):
         assert zope_transaction.get().status == 'Committing', "Transaction must be committed by zope"
