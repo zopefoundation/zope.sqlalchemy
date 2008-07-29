@@ -1,0 +1,28 @@
+Changes
+=======
+
+0.3 (2008-07-29)
+----------------
+
+Bugs fixed:
+
+* New objects added to a session did not cause a transaction join, so were not
+  committed at the end of the transaction unless the database was accessed.
+  SQLAlchemy 0.4.7 or 0.5beta3 now required.
+
+Feature changes:
+
+* For correctness and consistency with ZODB, renamed the function 'invalidate' 
+  to 'mark_changed' and the status 'invalidated' to 'changed'.
+
+0.2 (2008-06-28)
+----------------
+
+Feature changes:
+
+* Updated to support SQLAlchemy 0.5. (0.4.6 is still supported).
+
+0.1 (2008-05-15)
+----------------
+
+* Initial public release.
