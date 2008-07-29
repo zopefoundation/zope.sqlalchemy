@@ -1,7 +1,7 @@
 Changes
 =======
 
-0.3 (unreleased)
+0.3 (2008-07-29)
 ----------------
 
 Bugs fixed:

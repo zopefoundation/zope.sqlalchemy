@@ -1,1 +1,0 @@
-Minimal Zope/SQLAlchemy transaction integration
