@@ -50,7 +50,7 @@ class SessionDataManager(object):
         self.state = 'init'
 
     def abort(self, trans):
-        if self.tx is not None: # this could happen after a tpc_abort
+        if self.tx is not None: # there may have been no work to do
             del _SESSION_STATE[id(self.session)]
             self.session.close()
             self.tx = self.session = None
@@ -73,13 +73,13 @@ class SessionDataManager(object):
             self.tx.commit()
             self.session.close()
             self.tx = self.session = None
-            self.state = 'finished on vote'
+            self.state = 'committed'
                 
     def tpc_finish(self, trans):
         pass
 
     def tpc_abort(self, trans):
-        raise TypeError("Already committed")
+        assert self.state is not 'committed'
 
     def sortKey(self):
         # Try to sort last, so that we vote last - we may commit in tpc_vote(),
@@ -92,9 +92,9 @@ class SessionDataManager(object):
         """Savepoints are only supported when all connections support subtransactions
         """
         if set(engine.url.drivername
-            for engine in self.session.transaction._connections.keys()
-            if isinstance(engine, Engine)
-            ).intersection(NO_SAVEPOINT_SUPPORT):
+               for engine in self.session.transaction._connections.keys()
+               if isinstance(engine, Engine)
+               ).intersection(NO_SAVEPOINT_SUPPORT):
             raise AttributeError('savepoint')
         return self._savepoint
     
@@ -115,7 +115,7 @@ class TwoPhaseSessionDataManager(SessionDataManager):
             self.tx.commit()
             self.session.close()
             self.tx = self.session = None
-            self.state = 'finished'
+            self.state = 'committed'
 
     def tpc_abort(self, trans):
         if self.tx is not None: # we may not have voted, and been aborted already
