@@ -52,7 +52,7 @@ def text(*args, **kwargs):
 
 setup(
     name='zope.sqlalchemy',
-    version='0.3', # Remember to update __version__ in __init__.py
+    version='0.4dev', # Remember to update __version__ in __init__.py
     
     packages=find_packages('src'),
     package_dir = {'':'src'},

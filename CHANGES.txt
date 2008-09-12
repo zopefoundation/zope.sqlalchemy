@@ -1,6 +1,13 @@
 Changes
 =======
 
+0.4 (unreleased)
+----------------
+
+Bugs fixed:
+
+* Only raise errors in tpc_abort if we have committed.
+
 0.3 (2008-07-29)
 ----------------
 
