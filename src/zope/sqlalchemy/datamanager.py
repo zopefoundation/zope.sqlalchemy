@@ -49,31 +49,32 @@ class SessionDataManager(object):
         _SESSION_STATE[id(session)] = status
         self.state = 'init'
 
+    def _finish(self, final_state):
+        assert self.session is not None
+        del _SESSION_STATE[id(self.session)]
+        self.tx = self.session = None
+        self.state = final_state
+
     def abort(self, trans):
         if self.tx is not None: # there may have been no work to do
-            del _SESSION_STATE[id(self.session)]
             self.session.close()
-            self.tx = self.session = None
-            self.state = 'aborted'
+            self._finish('aborted')
 
     def tpc_begin(self, trans):
         self.session._autoflush()
     
     def commit(self, trans):
         status = _SESSION_STATE[id(self.session)]
-        del _SESSION_STATE[id(self.session)]
         if status is not STATUS_INVALIDATED:
             self.session.close()
-            self.tx = self.session = None
-            self.state = 'no work'
+            self._finish('no work')
 
     def tpc_vote(self, trans):
         # for a one phase data manager commit last in tpc_vote
         if self.tx is not None: # there may have been no work to do
             self.tx.commit()
             self.session.close()
-            self.tx = self.session = None
-            self.state = 'committed'
+            self._finish('committed')
                 
     def tpc_finish(self, trans):
         pass
@@ -114,15 +115,13 @@ class TwoPhaseSessionDataManager(SessionDataManager):
         if self.tx is not None:
             self.tx.commit()
             self.session.close()
-            self.tx = self.session = None
-            self.state = 'committed'
+            self._finish('committed')
 
     def tpc_abort(self, trans):
         if self.tx is not None: # we may not have voted, and been aborted already
             self.tx.rollback()
             self.session.close()
-            self.tx = self.session = None
-            self.state = 'aborted commit'
+            self._finish('aborted commit')
 
     def sortKey(self):
         # Sort normally

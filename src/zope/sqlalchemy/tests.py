@@ -32,6 +32,7 @@ import threading
 import sqlalchemy as sa
 from sqlalchemy import orm, sql
 from zope.sqlalchemy import datamanager as tx
+from zope.sqlalchemy import mark_changed
 
 TEST_TWOPHASE = bool(os.environ.get('TEST_TWOPHASE'))
 TEST_DSN = os.environ.get('TEST_DSN', 'sqlite:///:memory:')
@@ -168,6 +169,32 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def tearDown(self):
         transaction.abort()
         metadata.drop_all(engine)
+
+    def testAbortAfterCommit(self):
+        # This is a regression test which used to wedge the transaction
+        # machinery when using PostgreSQL (and perhaps other) connections.
+        # Basically, if a commit failed, there was no way to abort the
+        # transaction. Leaving the transaction wedged.
+        transaction.begin()
+        session = Session()
+        conn = session.connection()
+        # At least PostgresSQL requires a rollback after invalid SQL is executed
+        self.assertRaises(Exception, conn.execute, "BAD SQL SYNTAX")
+        mark_changed(session)
+        try:
+            # Thus we could fail in commit
+            transaction.commit()
+        except:
+            # But abort must succed (and actually rollback the base connection)
+            transaction.abort()
+            pass
+        # Or the next transaction the next transaction will not be able to start!
+        transaction.begin()
+        session = Session()
+        conn = session.connection()
+        conn.execute("SELECT 1")
+        mark_changed(session)
+        transaction.commit()
 
     def testSimplePopulation(self):
         session = Session()
