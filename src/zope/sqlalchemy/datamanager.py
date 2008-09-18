@@ -50,14 +50,17 @@ class SessionDataManager(object):
         self.state = 'init'
 
     def _finish(self, final_state):
-        assert self.session is not None
+        assert self.tx is not None
+        session = self.session
         del _SESSION_STATE[id(self.session)]
         self.tx = self.session = None
         self.state = final_state
+        # closing the session is the last thing we do. If it fails the
+        # transactions don't get wedged and the error propagates
+        session.close()
 
     def abort(self, trans):
         if self.tx is not None: # there may have been no work to do
-            self.session.close()
             self._finish('aborted')
 
     def tpc_begin(self, trans):
@@ -66,14 +69,12 @@ class SessionDataManager(object):
     def commit(self, trans):
         status = _SESSION_STATE[id(self.session)]
         if status is not STATUS_INVALIDATED:
-            self.session.close()
             self._finish('no work')
 
     def tpc_vote(self, trans):
         # for a one phase data manager commit last in tpc_vote
         if self.tx is not None: # there may have been no work to do
             self.tx.commit()
-            self.session.close()
             self._finish('committed')
                 
     def tpc_finish(self, trans):
@@ -114,13 +115,11 @@ class TwoPhaseSessionDataManager(SessionDataManager):
     def tpc_finish(self, trans):
         if self.tx is not None:
             self.tx.commit()
-            self.session.close()
             self._finish('committed')
 
     def tpc_abort(self, trans):
         if self.tx is not None: # we may not have voted, and been aborted already
             self.tx.rollback()
-            self.session.close()
             self._finish('aborted commit')
 
     def sortKey(self):
