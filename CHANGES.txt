@@ -7,11 +7,14 @@ Changes
 Bugs fixed:
 
 * Only raise errors in tpc_abort if we have committed.
+
 * Remove the session id from the SESSION_STATE just before we de-reference the
   session (i.e. all work is already successfuly completed). This fixes cases
   where the transaction commit failed but SESSION_STATE was already cleared.  In
   those cases, the transaction was wedeged as abort would always error.  This
   happened on PostgreSQL where invalid SQL was used and the error caught.
+
+* Call session.flush() unconditionally in tpc_begin.
 
 0.3 (2008-07-29)
 ----------------

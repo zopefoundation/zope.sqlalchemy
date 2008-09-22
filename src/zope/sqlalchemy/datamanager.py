@@ -64,7 +64,7 @@ class SessionDataManager(object):
             self._finish('aborted')
 
     def tpc_begin(self, trans):
-        self.session._autoflush()
+        self.session.flush()
     
     def commit(self, trans):
         status = _SESSION_STATE[id(self.session)]
