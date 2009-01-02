@@ -93,6 +93,12 @@ class SessionDataManager(object):
     def savepoint(self):
         """Savepoints are only supported when all connections support subtransactions
         """
+
+        # ATT: the following check is weak since the savepoint capability 
+        # of a RDBMS also depends on its version. E.g. Postgres 7.X does not
+        # support savepoints but Postgres is whitelisted independent of its
+        # version. Possibly additional version information should be taken
+        # into account (ajung)
         if set(engine.url.drivername
                for engine in self.session.transaction._connections.keys()
                if isinstance(engine, Engine)
