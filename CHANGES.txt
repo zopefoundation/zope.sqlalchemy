@@ -16,6 +16,8 @@ Bugs fixed:
 
 * Call session.flush() unconditionally in tpc_begin.
 
+* Change error message on session.commit() to be friendlier to non zope users.
+
 0.3 (2008-07-29)
 ----------------
 

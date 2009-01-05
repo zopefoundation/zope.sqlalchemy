@@ -192,4 +192,4 @@ class ZopeTransactionExtension(SessionExtension):
         mark_changed(session)
     
     def before_commit(self, session):
-        assert zope_transaction.get().status == 'Committing', "Transaction must be committed by zope"
+        assert zope_transaction.get().status == 'Committing', "Transaction must be committed using the transaction manager"
