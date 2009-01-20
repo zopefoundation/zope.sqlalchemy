@@ -412,6 +412,28 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         if thread_error is not None:
             raise thread_error # reraise in current thread
 
+    def testBulkDelete(self):
+        session = Session()
+        session.save(User(id=1, firstname='udo', lastname='juergens'))
+        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        transaction.commit()
+        session = Session()
+        session.query(User).delete()
+        transaction.commit()
+        results = engine.connect().execute(test_users.select())
+        self.assertEqual(len(results.fetchall()), 0)
+
+    def testBulkUpdate(self):
+        session = Session()
+        session.save(User(id=1, firstname='udo', lastname='juergens'))
+        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        transaction.commit()
+        session = Session()
+        session.query(User).update(dict(lastname="smith"))
+        transaction.commit()
+        results = engine.connect().execute(test_users.select(test_users.c.lastname=="smith"))
+        self.assertEqual(len(results.fetchall()), 2)
+
 
 class MultipleEngineTests(unittest.TestCase):
         

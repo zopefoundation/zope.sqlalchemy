@@ -18,6 +18,10 @@ Bugs fixed:
 
 * Change error message on session.commit() to be friendlier to non zope users.
 
+Feature changes:
+
+* Support for bulk update and delete with SQLAlchemy 0.5.1
+
 0.3 (2008-07-29)
 ----------------
 
