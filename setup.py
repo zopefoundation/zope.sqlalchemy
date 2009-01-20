@@ -52,7 +52,7 @@ def text(*args, **kwargs):
 
 setup(
     name='zope.sqlalchemy',
-    version='0.4dev', # Remember to update __version__ in __init__.py
+    version='0.4', # Remember to update __version__ in __init__.py
     
     packages=find_packages('src'),
     package_dir = {'':'src'},
@@ -79,7 +79,7 @@ setup(
 
     install_requires=[
       'setuptools',
-      'SQLAlchemy>=0.4.7,!=0.5.0beta1,!=0.5.0beta2', # or >=0.5b3
+      'SQLAlchemy>=0.4.7,!=0.5.0beta1,!=0.5.0beta2,!=0.5.0beta3,!=0.5.0rc1,!=0.5.0rc2,!=0.5.0rc3,!=0.5.0rc4,!=0.5.0', # or >=0.5.1
       'transaction',
       'zope.interface',
       ],
