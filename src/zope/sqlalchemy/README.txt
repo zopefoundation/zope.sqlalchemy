@@ -95,7 +95,7 @@ same session. At present there are no users in the database.
 We can now create a new user and commit the changes using Zope's transaction
 machinary, just as Zope's publisher would.
 
-    >>> session.save(User(name='bob'))
+    >>> session.add(User(name='bob'))
     >>> transaction.commit()
 
 Engine level connections are outside the scope of the transaction integration.

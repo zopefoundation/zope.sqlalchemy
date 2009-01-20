@@ -202,8 +202,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         rows = query.all()
         self.assertEqual(len(rows), 0)
                
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         
         rows = query.order_by(User.id).all()
@@ -220,7 +220,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         
     def testRelations(self):
         session = Session()
-        session.save(User(id=1,firstname='foo', lastname='bar'))
+        session.add(User(id=1,firstname='foo', lastname='bar'))
 
         user = session.query(User).filter_by(firstname='foo')[0]
         user.skills.append(Skill(id=1, name='Zope'))
@@ -232,7 +232,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.failIf([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
              "Joined transaction too early")
         session = Session()
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
         t = transaction.get()
         # Expect this to fail with SQLAlchemy 0.4
         self.failUnless([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
@@ -256,12 +256,12 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             return # sqlite databases do not support savepoints
         
         s1 = t.savepoint()
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.flush()
         self.failUnless(len(query.all())==1, "Users table should have one row")
         
         s2 = t.savepoint()
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         self.failUnless(len(query.all())==2, "Users table should have two rows")
         
@@ -284,8 +284,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = Session()
         query = session.query(User)
 
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
 
         rows = query.order_by(User.id).all()
@@ -297,8 +297,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 0)
         
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         rows = query.order_by(User.id).all()
         row1 = rows[0]
@@ -321,8 +321,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
             return
         session = Session()
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         transaction.commit()
         
@@ -345,8 +345,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = Session()
         if not session.twophase:
             return
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         transaction.commit()
         
@@ -392,8 +392,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
                 rows = query.all()
                 self.assertEqual(len(rows), 0)
 
-                session.save(User(id=1, firstname='udo', lastname='juergens'))
-                session.save(User(id=2, firstname='heino', lastname='n/a'))
+                session.add(User(id=1, firstname='udo', lastname='juergens'))
+                session.add(User(id=2, firstname='heino', lastname='n/a'))
                 session.flush()
 
                 rows = query.order_by(User.id).all()
@@ -414,8 +414,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 
     def testBulkDelete(self):
         session = Session()
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         transaction.commit()
         session = Session()
         session.query(User).delete()
@@ -425,8 +425,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 
     def testBulkUpdate(self):
         session = Session()
-        session.save(User(id=1, firstname='udo', lastname='juergens'))
-        session.save(User(id=2, firstname='heino', lastname='n/a'))
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
         transaction.commit()
         session = Session()
         session.query(User).update(dict(lastname="smith"))
@@ -450,8 +450,8 @@ class MultipleEngineTests(unittest.TestCase):
 
     def testTwoEngines(self):
         session = UnboundSession()
-        session.save(TestOne(id=1))
-        session.save(TestTwo(id=2))
+        session.add(TestOne(id=1))
+        session.add(TestTwo(id=2))
         session.flush()
         transaction.commit()
         session = UnboundSession()
