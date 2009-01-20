@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-__version__ = '0.4dev'
+__version__ = '0.4'
 
 from datamanager import ZopeTransactionExtension, mark_changed
 invalidate = mark_changed

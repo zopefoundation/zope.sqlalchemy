@@ -190,6 +190,12 @@ class ZopeTransactionExtension(SessionExtension):
     
     def after_flush(self, session, flush_context):
         mark_changed(session)
+        
+    def after_bulk_update(self, session, query, query_context, result):
+        mark_changed(session)
+
+    def after_bulk_delete(self, session, query, query_context, result):
+        mark_changed(session)
     
     def before_commit(self, session):
         assert zope_transaction.get().status == 'Committing', "Transaction must be committed using the transaction manager"
