@@ -85,8 +85,9 @@ setup(
       ],
     extras_require={
         'test': [
-            'zope.testing',
             'docutils',
+            'pysqlite',
+            'zope.testing',
             ]
         },
     )
