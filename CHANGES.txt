@@ -4,6 +4,8 @@ Changes
 0.5 (unreleased)
 ----------------
 
+* Pull in pysqlite explicitly as a test dependency.
+
 0.4 (2009-01-20)
 ----------------
 
