@@ -16,3 +16,23 @@ __version__ = '0.5dev'
 
 from datamanager import ZopeTransactionExtension, mark_changed
 invalidate = mark_changed
+
+_SESSIONS = {}
+
+def Session():
+    """Find the default session factory, execute and return the session"""
+    return _SESSIONS['']()
+
+def set_session(session_factory, name=''):
+    _SESSIONS[name] = session_factory
+
+def named_session(name):
+    return _SESSIONS[name]()
+
+def clear_sessions():
+    global _SESSIONS
+    _SESSIONS = {}
+
+def install_sessions(sessions):
+    global _SESSIONS
+    _SESSIONS = sessions

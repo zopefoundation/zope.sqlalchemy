@@ -10,8 +10,8 @@ Introduction
 
 The aim of this package is to unify the plethora of existing packages
 integrating SQLAlchemy with Zope's transaction management. As such it seeks
-only to provide a data manager and makes no attempt to define a `zopeish` way
-to configure engines.
+only to provide a data manager and hook to get the session. It makes no attempt
+to define a `zopeish` way to configure engines.
 
 You need to understand SQLAlchemy for this package and this README to make 
 any sense. See http://sqlalchemy.org/docs/.
@@ -165,6 +165,102 @@ If this is a problem you may tell the extension to place the session in the
     >>> session.query(User).all()[0].name
     u'bob'
     >>> transaction.abort()
+
+Session Registry
+================
+
+One difficulty in writing re-usable code is where to get the Session object
+from. zope.sqlalchemy provides a registry for plugging in different session
+factories.
+
+IMPORTANT: This should be setup only at application configure/setup time. All
+other run-time lookup should be built into the session factories themselves.
+
+Setup:
+
+    >>> import zope.sqlalchemy
+    >>> from zope.sqlalchemy import Session, install_sessions, clear_sessions, named_session
+    >>> def fake_session_factory(name):
+    ...     def f():
+    ...         return name
+    ...     return f
+
+Single Session
+--------------
+
+To simply configure the default session we only need to assign it:
+
+    >>> zope.sqlalchemy.set_session(fake_session_factory('default'))
+    >>> zope.sqlalchemy.Session()
+    'default'
+    >>> Session()
+    'default'
+
+    >>> clear_sessions()
+
+Named Sessions
+--------------
+
+We can also register multiple sessions by installing them:
+
+    >>> sessions = {'session1': fake_session_factory('session1'),
+    ...             'session2': fake_session_factory('session2')}
+    >>> install_sessions(sessions)
+
+And then get them:
+
+    >>> named_session('session1')
+    'session1'
+
+However, we have not registered a default session, so the default session errors:
+
+    >>> zope.sqlalchemy.Session()
+    Traceback (most recent call last):
+        ...
+    KeyError: ''
+    >>> Session()
+    Traceback (most recent call last):
+        ...
+    KeyError: ''
+
+We can modify our registered dict to have a default:
+
+    >>> sessions[''] = fake_session_factory('default')
+    >>> zope.sqlalchemy.Session()
+    'default'
+    >>> Session()
+    'default'
+    
+Cleanup
+-------
+    
+We can clean up with clear_sessions:
+
+    >>> clear_sessions()
+    >>> zope.sqlalchemy.Session()
+    Traceback (most recent call last):
+        ...
+    KeyError: ''
+    >>> Session()
+    Traceback (most recent call last):
+        ...
+    KeyError: ''
+    >>> named_session('session1')
+    Traceback (most recent call last):
+        ...
+    KeyError: 'session1'
+    
+Even if we import it after setting it up:
+
+    >>> zope.sqlalchemy.set_session(fake_session_factory('default'))
+    >>> from zope.sqlalchemy import Session as SetupSession
+    >>> SetupSession()
+    'default'
+    >>> clear_sessions()
+    >>> SetupSession()
+    Traceback (most recent call last):
+        ...
+    KeyError: ''
 
 Development version
 ===================

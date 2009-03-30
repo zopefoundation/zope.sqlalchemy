@@ -5,6 +5,8 @@ Changes
 ----------------
 
 * Pull in pysqlite explicitly as a test dependency.
+* Add a global session factory registry so that applications can get the
+  Session from zope.sqlalchemy.
 
 0.4 (2009-01-20)
 ----------------
