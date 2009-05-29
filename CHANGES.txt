@@ -7,6 +7,10 @@ Changes
 * Pull in pysqlite explicitly as a test dependency.
 * Add a global session factory registry so that applications can get the
   Session from zope.sqlalchemy.
+* Setup sqlalchemy mappers in test setup and clear them in tear down. This
+  makes the tests more robust and clears up the global state after. It
+  caused the tests to fail when other tests in the same run called
+  clear_mappers.
 
 0.4 (2009-01-20)
 ----------------

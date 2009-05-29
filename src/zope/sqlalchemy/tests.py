@@ -95,13 +95,6 @@ test_skills = sa.Table('test_skills', metadata,
     sa.ForeignKeyConstraint(('user_id',), ('test_users.id',)),
     )
 
-orm.mapper(User, test_users,
-    properties = {
-        'skills': orm.relation(Skill,
-            primaryjoin=test_users.columns['id']==test_skills.columns['user_id']),
-    })
-orm.mapper(Skill, test_skills)
-
 bound_metadata1 = sa.MetaData(engine)
 bound_metadata2 = sa.MetaData(engine2)
 
@@ -111,9 +104,18 @@ test_two = sa.Table('test_two', bound_metadata2, sa.Column('id', sa.Integer, pri
 class TestOne(SimpleModel): pass
 class TestTwo(SimpleModel): pass
 
-orm.mapper(TestOne, test_one)
-orm.mapper(TestTwo, test_two)
+def setup_mappers():
+    # Other tests can clear mappers by calling clear_mappers(),
+    # be more robust by setting up mappers in the test setup.
+    m1 = orm.mapper(User, test_users,
+                    properties = {'skills': orm.relation(Skill,
+                       primaryjoin=test_users.columns['id']==test_skills.columns['user_id']),
+                    })
+    m2 = orm.mapper(Skill, test_skills)
 
+    m3 = orm.mapper(TestOne, test_one)
+    m4 = orm.mapper(TestTwo, test_two)
+    return [m1, m2, m3, m4]
 
 class DummyException(Exception):
     pass
@@ -163,12 +165,15 @@ class DummyDataManager(object):
 class ZopeSQLAlchemyTests(unittest.TestCase):
         
     def setUp(self):
+        self.mappers = setup_mappers()
         metadata.drop_all(engine)
         metadata.create_all(engine)
     
     def tearDown(self):
         transaction.abort()
         metadata.drop_all(engine)
+        for m in self.mappers:
+            m.dispose()
 
     def testAbortAfterCommit(self):
         # This is a regression test which used to wedge the transaction
@@ -438,6 +443,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 class MultipleEngineTests(unittest.TestCase):
         
     def setUp(self):
+        self.mappers = setup_mappers()
         bound_metadata1.drop_all()
         bound_metadata1.create_all()
         bound_metadata2.drop_all()
@@ -447,6 +453,8 @@ class MultipleEngineTests(unittest.TestCase):
         transaction.abort()
         bound_metadata1.drop_all()
         bound_metadata2.drop_all()
+        for m in self.mappers:
+            m.dispose()
 
     def testTwoEngines(self):
         session = UnboundSession()
