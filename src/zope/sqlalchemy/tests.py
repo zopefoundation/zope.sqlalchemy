@@ -175,6 +175,27 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         for m in self.mappers:
             m.dispose()
 
+    def testAbortBeforeCommit(self):
+        # Simulate what happens in a conflict error
+        dummy = DummyDataManager(key='dummy.first')
+        session = Session()
+        conn = session.connection()
+        mark_changed(session)
+        try:
+            # Thus we could fail in commit
+            transaction.commit()
+        except:
+            # But abort must succed (and actually rollback the base connection)
+            transaction.abort()
+            pass
+        # Or the next transaction the next transaction will not be able to start!
+        transaction.begin()
+        session = Session()
+        conn = session.connection()
+        conn.execute("SELECT 1")
+        mark_changed(session)
+        transaction.commit()        
+
     def testAbortAfterCommit(self):
         # This is a regression test which used to wedge the transaction
         # machinery when using PostgreSQL (and perhaps other) connections.
@@ -418,6 +439,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             raise thread_error # reraise in current thread
 
     def testBulkDelete(self):
+        if SA_0_4:
+            return
         session = Session()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.add(User(id=2, firstname='heino', lastname='n/a'))
@@ -429,6 +452,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertEqual(len(results.fetchall()), 0)
 
     def testBulkUpdate(self):
+        if SA_0_4:
+            return
         session = Session()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.add(User(id=2, firstname='heino', lastname='n/a'))
