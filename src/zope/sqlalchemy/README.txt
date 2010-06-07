@@ -13,9 +13,19 @@ integrating SQLAlchemy with Zope's transaction management. As such it seeks
 only to provide a data manager and makes no attempt to define a `zopeish` way
 to configure engines.
 
-You need to understand SQLAlchemy for this package and this README to make 
-any sense. See http://sqlalchemy.org/docs/.
+For WSGI applications, Zope style automatic transaction management is
+available with `repoze.tm2`_, a part of `Repoze BFG`_ and `Turbogears 2`_.
 
+You need to understand `SQLAlchemy`_ for this package and this README to make 
+any sense.
+
+.. _repoze.tm2: http://docs.repoze.org/tm2/
+
+.. _Repoze BFG: http://bfg.repoze.org/
+
+.. _Turbogears 2: http://turbogears.org/
+
+.. _SQLAlchemy: http://sqlalchemy.org/docs/
 
 Running the tests
 =================
@@ -28,6 +38,10 @@ This will download the dependent packages and setup the test script, which may
 be run with:
 
 $ ./bin/test
+
+or with the standard setuptools test command:
+
+$ ./bin/py setup.py test
 
 To enable testing with your own database set the TEST_DSN environment variable
 to your sqlalchemy database dsn. Two-phase commit behaviour may be tested by
