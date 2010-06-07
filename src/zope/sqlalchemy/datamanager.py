@@ -139,12 +139,10 @@ class SessionSavepoint:
     def __init__(self, session):
         self.session = session
         self.transaction = session.begin_nested()
-        session.flush() # do I want to do this? Probably.
 
     def rollback(self):
         # no need to check validity, sqlalchemy should raise an exception. I think.
         self.transaction.rollback()
-        self.session.clear() # remove when Session.rollback does an attribute_manager.rollback
 
 
 def join_transaction(session, initial_state=STATUS_ACTIVE):

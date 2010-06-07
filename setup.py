@@ -27,7 +27,7 @@ setup(
 
     install_requires=[
       'setuptools',
-      'SQLAlchemy>=0.4.7,!=0.5.0beta1,!=0.5.0beta2,!=0.5.0beta3,!=0.5.0rc1,!=0.5.0rc2,!=0.5.0rc3,!=0.5.0rc4,!=0.5.0', # or >=0.5.1
+      'SQLAlchemy>=0.5.1',
       'transaction',
       'zope.interface',
       ],

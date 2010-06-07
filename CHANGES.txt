@@ -4,6 +4,11 @@ Changes
 0.5 (unreleased)
 ----------------
 
+* Remove redundant session.flush() / session.clear() on savepoint operations.
+  These were only needed with SQLAlchemy 0.4.x. 
+
+* SQLAlchemy 0.6.x support. Require SQLAlchemy >= 0.5.1.
+
 * Add support for running ``python setup.py test``.
 
 * Pull in pysqlite explicitly as a test dependency.

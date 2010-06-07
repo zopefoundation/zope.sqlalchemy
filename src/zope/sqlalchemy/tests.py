@@ -37,10 +37,6 @@ from zope.sqlalchemy import mark_changed
 TEST_TWOPHASE = bool(os.environ.get('TEST_TWOPHASE'))
 TEST_DSN = os.environ.get('TEST_DSN', 'sqlite:///:memory:')
 
-SA_0_4 = sa.__version__.split('.')[:2] == ['0', '4']
-SA_0_5 = not SA_0_4
-
-
 class SimpleModel(object):
     def __init__(self, **kw):
         for k, v in kw.items():
@@ -55,31 +51,15 @@ class Skill(SimpleModel): pass
 engine = sa.create_engine(TEST_DSN)
 engine2 = sa.create_engine(TEST_DSN)
 
-if SA_0_4:
-    Session = orm.scoped_session(orm.sessionmaker(
-        bind=engine,
-        extension=tx.ZopeTransactionExtension(),
-        transactional=True,
-        autoflush=True,
-        twophase=TEST_TWOPHASE,
-        ))
-    UnboundSession = orm.scoped_session(orm.sessionmaker(
-        extension=tx.ZopeTransactionExtension(),
-        transactional=True,
-        autoflush=True,
-        twophase=TEST_TWOPHASE,
-        ))
-
-if SA_0_5:
-    Session = orm.scoped_session(orm.sessionmaker(
-        bind=engine,
-        extension=tx.ZopeTransactionExtension(),
-        twophase=TEST_TWOPHASE,
-        ))
-    UnboundSession = orm.scoped_session(orm.sessionmaker(
-        extension=tx.ZopeTransactionExtension(),
-        twophase=TEST_TWOPHASE,
-        ))
+Session = orm.scoped_session(orm.sessionmaker(
+    bind=engine,
+    extension=tx.ZopeTransactionExtension(),
+    twophase=TEST_TWOPHASE,
+    ))
+UnboundSession = orm.scoped_session(orm.sessionmaker(
+    extension=tx.ZopeTransactionExtension(),
+    twophase=TEST_TWOPHASE,
+    ))
 
 metadata = sa.MetaData() # best to use unbound metadata
 
@@ -296,6 +276,27 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         
         s1.rollback()
         self.failIf(query.all(), "Users table should be empty")
+
+    def testRollbackAttributes(self):
+        use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
+        if not use_savepoint:
+            return # sqlite databases do not support savepoints
+        
+        t = transaction.get()
+        session = Session()
+        query = session.query(User)
+        self.failIf(query.all(), "Users table should be empty")
+        
+        s1 = t.savepoint()
+        user = User(id=1, firstname='udo', lastname='juergens')
+        session.add(user)
+        session.flush()
+        
+        s2 = t.savepoint()
+        user.firstname='heino'
+        session.flush()
+        s2.rollback()
+        self.assertEqual(user.firstname, 'udo', "User firstname attribute should have been rolled back")
     
     def testCommit(self):
         session = Session()
@@ -439,8 +440,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             raise thread_error # reraise in current thread
 
     def testBulkDelete(self):
-        if SA_0_4:
-            return
         session = Session()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.add(User(id=2, firstname='heino', lastname='n/a'))
@@ -452,8 +451,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertEqual(len(results.fetchall()), 0)
 
     def testBulkUpdate(self):
-        if SA_0_4:
-            return
         session = Session()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.add(User(id=2, firstname='heino', lastname='n/a'))
@@ -506,5 +503,5 @@ def test_suite():
     for cls in (ZopeSQLAlchemyTests, MultipleEngineTests):
         suite.addTest(makeSuite(cls))
     suite.addTest(doctest.DocFileSuite('README.txt', optionflags=optionflags, tearDown=tearDownReadMe,
-        globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE, 'SA_0_4': SA_0_4, 'SA_0_5': SA_0_5}))
+        globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE}))
     return suite
