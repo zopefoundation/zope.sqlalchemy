@@ -4,6 +4,8 @@ Changes
 0.5 (unreleased)
 ----------------
 
+* Add support for running ``python setup.py test``.
+
 * Pull in pysqlite explicitly as a test dependency.
 
 * Setup sqlalchemy mappers in test setup and clear them in tear down. This
