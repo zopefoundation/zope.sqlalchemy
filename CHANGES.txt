@@ -4,6 +4,8 @@ Changes
 0.6 (unreleased)
 ----------------
 
+* Add ``transaction_manager`` attribute to data managers for compliance with
+  IDataManager interface.
 
 0.5 (2010-06-07)
 ----------------

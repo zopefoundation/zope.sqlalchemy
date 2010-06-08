@@ -15,6 +15,7 @@
 import transaction as zope_transaction
 from zope.interface import implements
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
+from transaction._transaction import Status as ZopeStatus
 from sqlalchemy.orm.session import SessionExtension
 from sqlalchemy.engine.base import Engine
 
@@ -43,7 +44,8 @@ class SessionDataManager(object):
     
     implements(ISavepointDataManager)
 
-    def __init__(self, session, status):
+    def __init__(self, session, status, transaction_manager):
+        self.transaction_manager = transaction_manager
         self.tx = session.transaction._iterate_parents()[-1]
         self.session = session
         _SESSION_STATE[id(session)] = status
@@ -145,7 +147,7 @@ class SessionSavepoint:
         self.transaction.rollback()
 
 
-def join_transaction(session, initial_state=STATUS_ACTIVE):
+def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager):
     """Join a session to a transaction using the appropriate datamanager.
        
     It is safe to call this multiple times, if the session is already joined
@@ -160,8 +162,11 @@ def join_transaction(session, initial_state=STATUS_ACTIVE):
     called automatically after session write operations.
     """
     if _SESSION_STATE.get(id(session), None) is None:
-        DataManager = session.twophase and TwoPhaseSessionDataManager or SessionDataManager
-        zope_transaction.get().join(DataManager(session, initial_state))
+        if session.twophase:
+            DataManager = TwoPhaseSessionDataManager
+        else:
+            DataManager = SessionDataManager
+        transaction_manager.get().join(DataManager(session, initial_state, transaction_manager))
 
 def mark_changed(session):
     """Mark a session as needing to be committed
@@ -175,16 +180,17 @@ class ZopeTransactionExtension(SessionExtension):
     the DataManager to rollback rather than commit on read only transactions.
     """
     
-    def __init__(self, initial_state=STATUS_ACTIVE):
+    def __init__(self, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager):
         if initial_state=='invalidated': initial_state = STATUS_CHANGED #BBB
         SessionExtension.__init__(self)
         self.initial_state = initial_state
+        self.transaction_manager = transaction_manager
     
     def after_begin(self, session, transaction, connection):
-        join_transaction(session, self.initial_state)
+        join_transaction(session, self.initial_state, self.transaction_manager)
     
     def after_attach(self, session, instance):
-        join_transaction(session, self.initial_state)
+        join_transaction(session, self.initial_state, self.transaction_manager)
     
     def after_flush(self, session, flush_context):
         mark_changed(session)
@@ -196,4 +202,4 @@ class ZopeTransactionExtension(SessionExtension):
         mark_changed(session)
     
     def before_commit(self, session):
-        assert zope_transaction.get().status == 'Committing', "Transaction must be committed using the transaction manager"
+        assert self.transaction_manager.get().status == ZopeStatus.COMMITTING, "Transaction must be committed using the transaction manager"
