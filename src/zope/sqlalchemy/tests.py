@@ -29,8 +29,9 @@ import os
 import unittest
 import transaction
 import threading
+import time
 import sqlalchemy as sa
-from sqlalchemy import orm, sql
+from sqlalchemy import orm, sql, exc
 from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
 
@@ -85,6 +86,7 @@ class TestOne(SimpleModel): pass
 class TestTwo(SimpleModel): pass
 
 def setup_mappers():
+    orm.clear_mappers()
     # Other tests can clear mappers by calling clear_mappers(),
     # be more robust by setting up mappers in the test setup.
     m1 = orm.mapper(User, test_users,
@@ -152,8 +154,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def tearDown(self):
         transaction.abort()
         metadata.drop_all(engine)
-        for m in self.mappers:
-            m.dispose()
+        orm.clear_mappers()
 
     def testAbortBeforeCommit(self):
         # Simulate what happens in a conflict error
@@ -172,7 +173,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.begin()
         session = Session()
         conn = session.connection()
-        conn.execute("SELECT 1")
+        conn.execute("SELECT 1 FROM test_users")
         mark_changed(session)
         transaction.commit()        
 
@@ -198,7 +199,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.begin()
         session = Session()
         conn = session.connection()
-        conn.execute("SELECT 1")
+        conn.execute("SELECT 1 FROM test_users")
         mark_changed(session)
         transaction.commit()
 
@@ -461,6 +462,86 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         results = engine.connect().execute(test_users.select(test_users.c.lastname=="smith"))
         self.assertEqual(len(results.fetchall()), 2)
 
+class RetryTests(unittest.TestCase):
+    
+    def setUp(self):
+        self.mappers = setup_mappers()
+        metadata.drop_all(engine)
+        metadata.create_all(engine)
+
+        self.tm1 = transaction.TransactionManager()
+        self.tm2 = transaction.TransactionManager()
+        # With psycopg2 you might supply isolation_level='SERIALIZABLE' here,
+        # unfortunately that is not supported by cx_Oracle.
+        e1 = sa.create_engine(TEST_DSN)
+        e2 = sa.create_engine(TEST_DSN)
+        self.s1 = orm.sessionmaker(
+            bind=e1,
+            extension=tx.ZopeTransactionExtension(transaction_manager=self.tm1),
+            twophase=TEST_TWOPHASE,
+            )()
+        self.s2 = orm.sessionmaker(
+            bind=e2,
+            extension=tx.ZopeTransactionExtension(transaction_manager=self.tm2),
+            twophase=TEST_TWOPHASE,
+            )()
+        self.tm1.begin()
+        self.s1.add(User(id=1, firstname='udo', lastname='juergens'))
+        self.tm1.commit()
+
+    def tearDown(self):
+        self.tm1.abort()
+        self.tm2.abort()
+        metadata.drop_all(engine)
+        orm.clear_mappers()
+
+    def testRetry(self):
+        # sqlite is unable to run this test as the databse is locked
+        tm1, tm2, s1, s2 = self.tm1, self.tm2, self.s1, self.s2
+        # make sure we actually start a session.
+        tm1.begin()
+        self.failUnless(len(s1.query(User).all())==1, "Users table should have one row")
+        tm2.begin()
+        self.failUnless(len(s2.query(User).all())==1, "Users table should have one row")
+        s1.query(User).delete()
+        user = s2.query(User).get(1)
+        user.lastname = u'smith'
+        tm1.commit()
+        raised = False
+        try:
+            s2.flush()
+        except orm.exc.ConcurrentModificationError, e:
+            # This error is thrown when the number of updated rows is not as expected
+            raised = True
+        self.failUnless(raised, "Did not raise expected error")
+        self.failUnless(tm2._retryable(type(e), e), "Error should be retryable")
+
+    def testRetryThread(self):
+        tm1, tm2, s1, s2 = self.tm1, self.tm2, self.s1, self.s2
+        # make sure we actually start a session.
+        tm1.begin()
+        self.failUnless(len(s1.query(User).all())==1, "Users table should have one row")
+        tm2.begin()
+        s2.connection().execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        self.failUnless(len(s2.query(User).all())==1, "Users table should have one row")
+        s1.query(User).delete()
+        raised = False
+
+        def target():
+            time.sleep(0.2)
+            tm1.commit()
+
+        thread = threading.Thread(target=target)
+        thread.start()
+        try:
+            user = s2.query(User).with_lockmode('update').get(1)
+        except exc.DBAPIError, e:
+            # This error wraps the underlying DBAPI module error, some of which are retryable
+            raised = True
+        self.failUnless(raised, "Did not raise expected error")
+        self.failUnless(tm2._retryable(type(e), e), "Error should be retryable")
+        thread.join() # well, we must have joined by now
+
 
 class MultipleEngineTests(unittest.TestCase):
         
@@ -475,8 +556,7 @@ class MultipleEngineTests(unittest.TestCase):
         transaction.abort()
         bound_metadata1.drop_all()
         bound_metadata2.drop_all()
-        for m in self.mappers:
-            m.dispose()
+        orm.clear_mappers()
 
     def testTwoEngines(self):
         session = UnboundSession()
@@ -500,8 +580,10 @@ def test_suite():
     import doctest
     optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     suite = TestSuite()
-    for cls in (ZopeSQLAlchemyTests, MultipleEngineTests):
-        suite.addTest(makeSuite(cls))
+    suite.addTest(makeSuite(ZopeSQLAlchemyTests))
+    suite.addTest(makeSuite(MultipleEngineTests))
+    if TEST_DSN.startswith('postgres') or TEST_DSN.startswith('oracle'):
+        suite.addTest(makeSuite(RetryTests))
     suite.addTest(doctest.DocFileSuite('README.txt', optionflags=optionflags, tearDown=tearDownReadMe,
         globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE}))
     return suite

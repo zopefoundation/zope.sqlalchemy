@@ -16,8 +16,26 @@ import transaction as zope_transaction
 from zope.interface import implements
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
 from transaction._transaction import Status as ZopeStatus
+from sqlalchemy.orm.exc import ConcurrentModificationError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm.session import SessionExtension
 from sqlalchemy.engine.base import Engine
+
+_retryable_errors = []
+try:
+    import psycopg2.extensions
+except ImportError:
+    pass
+else:
+    _retryable_errors.append((psycopg2.extensions.TransactionRollbackError, None))
+
+# ORA-08177: can't serialize access for this transaction
+try:
+    import cx_Oracle
+except ImportError:
+    pass
+else:
+    _retryable_errors.append((cx_Oracle.DatabaseError, lambda e: e.args[0].code==8177))
 
 # The status of the session is stored on the connection info
 STATUS_ACTIVE = 'active' # session joined to transaction, writes allowed.
@@ -110,6 +128,18 @@ class SessionDataManager(object):
     
     def _savepoint(self):
         return SessionSavepoint(self.session)
+    
+    def should_retry(self, error):
+        if isinstance(error, ConcurrentModificationError):
+            return True
+        if isinstance(error, DBAPIError):
+            orig = error.orig
+            for error_type, test in _retryable_errors:
+                if isinstance(orig, error_type):
+                    if test is None:
+                        return True
+                    if test(orig):
+                        return True
 
 
 class TwoPhaseSessionDataManager(SessionDataManager):

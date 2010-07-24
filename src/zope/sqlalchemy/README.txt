@@ -99,7 +99,7 @@ same session. At present there are no users in the database.
 We can now create a new user and commit the changes using Zope's transaction
 machinary, just as Zope's publisher would.
 
-    >>> session.add(User(name='bob'))
+    >>> session.add(User(id=1, name='bob'))
     >>> transaction.commit()
 
 Engine level connections are outside the scope of the transaction integration.
@@ -115,7 +115,7 @@ A new transaction requires a new session. Let's add an address.
     u'bob'
     >>> bob.addresses
     []
-    >>> bob.addresses.append(Address(email='bob@bob.bob'))
+    >>> bob.addresses.append(Address(id=1, email='bob@bob.bob'))
     >>> transaction.commit()
     >>> session = Session()
     >>> bob = session.query(User).all()[0]
