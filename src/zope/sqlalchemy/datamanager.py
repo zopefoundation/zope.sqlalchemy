@@ -186,9 +186,9 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
     `initial_state` is either STATUS_ACTIVE, STATUS_INVALIDATED or STATUS_READONLY
     
     If using the default initial status of STATUS_ACTIVE, you must ensure that
-    dirty_session(session) is called when data is written to the database.
+    mark_changed(session) is called when data is written to the database.
     
-    The DirtyAfterFlush SessionExtension can be used to ensure that this is
+    The ZopeTransactionExtesion SessionExtension can be used to ensure that this is
     called automatically after session write operations.
     """
     if _SESSION_STATE.get(id(session), None) is None:
