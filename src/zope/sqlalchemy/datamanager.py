@@ -198,13 +198,12 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
             DataManager = SessionDataManager
         transaction_manager.get().join(DataManager(session, initial_state, transaction_manager))
 
-def mark_changed(session):
+def mark_changed(session, transaction_manager=zope_transaction.manager):
     """Mark a session as needing to be committed.
     """
     session_id = id(session)
-    if session_id in _SESSION_STATE:
-        assert _SESSION_STATE[session_id] is not STATUS_READONLY
-
+    assert _SESSION_STATE.get(session_id, None) is not STATUS_READONLY, "Session already registered as read only"
+    join_transaction(session, STATUS_CHANGED, transaction_manager)
     _SESSION_STATE[session_id] = STATUS_CHANGED
 
 
@@ -226,13 +225,13 @@ class ZopeTransactionExtension(SessionExtension):
         join_transaction(session, self.initial_state, self.transaction_manager)
     
     def after_flush(self, session, flush_context):
-        mark_changed(session)
+        mark_changed(session, self.transaction_manager)
         
     def after_bulk_update(self, session, query, query_context, result):
-        mark_changed(session)
+        mark_changed(session, self.transaction_manager)
 
     def after_bulk_delete(self, session, query, query_context, result):
-        mark_changed(session)
+        mark_changed(session, self.transaction_manager)
     
     def before_commit(self, session):
         assert self.transaction_manager.get().status == ZopeStatus.COMMITTING, "Transaction must be committed using the transaction manager"
