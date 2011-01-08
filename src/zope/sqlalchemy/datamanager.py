@@ -199,10 +199,13 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
         transaction_manager.get().join(DataManager(session, initial_state, transaction_manager))
 
 def mark_changed(session):
-    """Mark a session as needing to be committed
+    """Mark a session as needing to be committed.
     """
-    assert _SESSION_STATE[id(session)] is not STATUS_READONLY
-    _SESSION_STATE[id(session)] = STATUS_CHANGED
+    session_id = id(session)
+    if session_id in _SESSION_STATE:
+        assert _SESSION_STATE[session_id] is not STATUS_READONLY
+
+    _SESSION_STATE[session_id] = STATUS_CHANGED
 
 
 class ZopeTransactionExtension(SessionExtension):

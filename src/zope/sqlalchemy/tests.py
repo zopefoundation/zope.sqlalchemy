@@ -156,6 +156,14 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         metadata.drop_all(engine)
         orm.clear_mappers()
 
+    def testMarkUnknownSession(self):
+        import zope.sqlalchemy.datamanager
+        dummy = DummyDataManager(key='dummy.first')
+        session = Session()
+        mark_changed(session)
+        self.assertTrue(id(session) in zope.sqlalchemy.datamanager._SESSION_STATE)
+
+
     def testAbortBeforeCommit(self):
         # Simulate what happens in a conflict error
         dummy = DummyDataManager(key='dummy.first')
