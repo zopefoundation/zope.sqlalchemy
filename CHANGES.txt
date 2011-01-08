@@ -1,8 +1,8 @@
 Changes
 =======
 
-0.7 (unreleased)
-----------------
+0.6.1 (2011-01-08)
+------------------
 
 * Update datamanager.mark_changed to handle sessions which have not yet logged
   a (ORM) query.
