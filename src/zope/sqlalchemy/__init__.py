@@ -14,5 +14,5 @@
 
 __version__ = '0.7dev'
 
-from datamanager import ZopeTransactionExtension, mark_changed
+from zope.sqlalchemy.datamanager import ZopeTransactionExtension, mark_changed
 invalidate = mark_changed

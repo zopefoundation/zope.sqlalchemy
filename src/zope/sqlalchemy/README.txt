@@ -14,14 +14,19 @@ only to provide a data manager and makes no attempt to define a `zopeish` way
 to configure engines.
 
 For WSGI applications, Zope style automatic transaction management is
-available with `repoze.tm2`_, a part of `Repoze BFG`_ and `Turbogears 2`_.
+available with `repoze.tm2`_ (used by `Turbogears 2`_ and other systems).
+
+This package is also used by `pyramid_tm`_ (an add-on of the `Pyramid`_) web
+framework.
 
 You need to understand `SQLAlchemy`_ for this package and this README to make 
 any sense.
 
 .. _repoze.tm2: http://docs.repoze.org/tm2/
 
-.. _Repoze BFG: http://bfg.repoze.org/
+.. _pyramid_tm: https://docs.pylonsproject.org/projects/pyramid_tm/dev/
+
+.. _Pyramid: http://pylonsproject.org/
 
 .. _Turbogears 2: http://turbogears.org/
 
@@ -111,8 +116,8 @@ A new transaction requires a new session. Let's add an address.
 
     >>> session = Session()
     >>> bob = session.query(User).all()[0]
-    >>> bob.name
-    u'bob'
+    >>> str(bob.name)
+    'bob'
     >>> bob.addresses
     []
     >>> bob.addresses.append(Address(id=1, email='bob@bob.bob'))
@@ -121,8 +126,8 @@ A new transaction requires a new session. Let's add an address.
     >>> bob = session.query(User).all()[0]
     >>> bob.addresses
     [<Address object at ...>]
-    >>> bob.addresses[0].email
-    u'bob@bob.bob'
+    >>> str(bob.addresses[0].email)
+    'bob@bob.bob'
     >>> bob.addresses[0].email = 'wrong@wrong'    
 
 To rollback a transaction, use transaction.abort().
@@ -130,8 +135,8 @@ To rollback a transaction, use transaction.abort().
     >>> transaction.abort()
     >>> session = Session()
     >>> bob = session.query(User).all()[0]
-    >>> bob.addresses[0].email
-    u'bob@bob.bob'
+    >>> str(bob.addresses[0].email)
+    'bob@bob.bob'
     >>> transaction.abort()
 
 By default, zope.sqlalchemy puts sessions in an 'active' state when they are
@@ -151,8 +156,8 @@ to the DB.
     >>> mark_changed(session)
     >>> transaction.commit()
     >>> session = Session()
-    >>> session.query(User).all()[0].name
-    u'ben'
+    >>> str(session.query(User).all()[0].name)
+    'ben'
     >>> transaction.abort()
 
 If this is a problem you may tell the extension to place the session in the
@@ -166,8 +171,8 @@ If this is a problem you may tell the extension to place the session in the
     <sqlalchemy.engine.base.ResultProxy object at ...>
     >>> transaction.commit()
     >>> session = Session()
-    >>> session.query(User).all()[0].name
-    u'bob'
+    >>> str(session.query(User).all()[0].name)
+    'bob'
     >>> transaction.abort()
 
 Development version

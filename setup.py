@@ -1,5 +1,18 @@
+import sys
+
 import os.path
 from setuptools import setup, find_packages
+
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    extras_require = {'test':[]}
+else:
+    extras_require= {
+        'test': [
+            'pysqlite',
+            ]
+        }
 
 setup(
     name='zope.sqlalchemy',
@@ -21,6 +34,11 @@ setup(
     classifiers=[
     "Framework :: Zope3",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.6",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.2",
     "License :: OSI Approved :: Zope Public License",
     "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -31,9 +49,5 @@ setup(
       'transaction',
       'zope.interface',
       ],
-    extras_require={
-        'test': [
-            'pysqlite',
-            ]
-        },
+    extras_require = extras_require,
     )
