@@ -19,8 +19,8 @@ available with `repoze.tm2`_ (used by `Turbogears 2`_ and other systems).
 This package is also used by `pyramid_tm`_ (an add-on of the `Pyramid`_) web
 framework.
 
-You need to understand `SQLAlchemy`_ for this package and this README to make 
-any sense.
+You need to understand `SQLAlchemy`_ and the `Zope transaction manager`_ for
+this package and this README to make any sense.
 
 .. _repoze.tm2: http://docs.repoze.org/tm2/
 
@@ -31,6 +31,8 @@ any sense.
 .. _Turbogears 2: http://turbogears.org/
 
 .. _SQLAlchemy: http://sqlalchemy.org/docs/
+
+.. _Zope transaction manager: http://www.zodb.org/zodbbook/transactions.html
 
 Running the tests
 =================
