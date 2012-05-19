@@ -47,7 +47,7 @@ setup(
       'setuptools',
       'SQLAlchemy>=0.5.1',
       'transaction',
-      'zope.interface',
+      'zope.interface>=3.6.0',
       ],
     extras_require = extras_require,
     )

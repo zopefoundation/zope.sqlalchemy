@@ -13,7 +13,7 @@
 ##############################################################################
 
 import transaction as zope_transaction
-from zope.interface import implements
+from zope.interface import implementer
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
 from transaction._transaction import Status as ZopeStatus
 from sqlalchemy.orm.exc import ConcurrentModificationError
@@ -54,14 +54,13 @@ _SESSION_STATE = {} # a mapping of id(session) -> status
 # The two variants of the DataManager.
 #
 
+@implementer(ISavepointDataManager)
 class SessionDataManager(object):
     """Integrate a top level sqlalchemy session transaction into a zope transaction
     
     One phase variant.
     """
     
-    implements(ISavepointDataManager)
-
     def __init__(self, session, status, transaction_manager):
         self.transaction_manager = transaction_manager
         self.tx = session.transaction._iterate_parents()[-1]
@@ -165,9 +164,9 @@ class TwoPhaseSessionDataManager(SessionDataManager):
         return "sqlalchemy.twophase:%d" % id(self.tx)
 
 
+@implementer(IDataManagerSavepoint)
 class SessionSavepoint:
-    implements(IDataManagerSavepoint)
-
+    
     def __init__(self, session):
         self.session = session
         self.transaction = session.begin_nested()

@@ -4,7 +4,9 @@ Changes
 0.7.1 (unreleased)
 ------------------
 
-* ...
+* Use ``@implementer`` as a class decorator instead of ``implements()`` at
+  class scope for compatibility with ``zope.interface`` 4.0.  This requires
+  ``zope.interface`` >= 3.6.0.
 
 0.7 (2011-12-06)
 ----------------
