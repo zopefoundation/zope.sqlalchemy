@@ -16,7 +16,7 @@ else:
 
 setup(
     name='zope.sqlalchemy',
-    version='0.7.1dev', # Remember to update __version__ in __init__.py
+    version='0.7.1', # Remember to update __version__ in __init__.py
     packages=find_packages('src'),
     package_dir = {'':'src'},
     include_package_data=True,
