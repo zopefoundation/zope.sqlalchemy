@@ -61,12 +61,13 @@ class SessionDataManager(object):
     One phase variant.
     """
     
-    def __init__(self, session, status, transaction_manager):
+    def __init__(self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
         self.tx = session.transaction._iterate_parents()[-1]
         self.session = session
         _SESSION_STATE[id(session)] = status
         self.state = 'init'
+        self.keep_session = keep_session
 
     def _finish(self, final_state):
         assert self.tx is not None
@@ -76,7 +77,10 @@ class SessionDataManager(object):
         self.state = final_state
         # closing the session is the last thing we do. If it fails the
         # transactions don't get wedged and the error propagates
-        session.close()
+        if not self.keep_session:
+            session.close()
+        else:
+            session.expire_all()
 
     def abort(self, trans):
         if self.tx is not None: # there may have been no work to do
@@ -176,7 +180,7 @@ class SessionSavepoint:
         self.transaction.rollback()
 
 
-def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager):
+def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager, keep_session=False):
     """Join a session to a transaction using the appropriate datamanager.
        
     It is safe to call this multiple times, if the session is already joined
@@ -195,7 +199,7 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
             DataManager = TwoPhaseSessionDataManager
         else:
             DataManager = SessionDataManager
-        transaction_manager.get().join(DataManager(session, initial_state, transaction_manager))
+        transaction_manager.get().join(DataManager(session, initial_state, transaction_manager, keep_session=keep_session))
 
 def mark_changed(session, transaction_manager=zope_transaction.manager):
     """Mark a session as needing to be committed.
@@ -211,17 +215,18 @@ class ZopeTransactionExtension(SessionExtension):
     the DataManager to rollback rather than commit on read only transactions.
     """
     
-    def __init__(self, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager):
+    def __init__(self, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager, keep_session=False):
         if initial_state=='invalidated': initial_state = STATUS_CHANGED #BBB
         SessionExtension.__init__(self)
         self.initial_state = initial_state
         self.transaction_manager = transaction_manager
+        self.keep_session = keep_session
     
     def after_begin(self, session, transaction, connection):
-        join_transaction(session, self.initial_state, self.transaction_manager)
+        join_transaction(session, self.initial_state, self.transaction_manager, self.keep_session)
     
     def after_attach(self, session, instance):
-        join_transaction(session, self.initial_state, self.transaction_manager)
+        join_transaction(session, self.initial_state, self.transaction_manager, self.keep_session)
     
     def after_flush(self, session, flush_context):
         mark_changed(session, self.transaction_manager)

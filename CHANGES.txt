@@ -4,7 +4,8 @@ Changes
 0.7.2 (unreleased)
 ------------------
 
-* ...
+* Make life-time of sessions configurable. Specify `keep_session=True` when
+  setting up the SA extension.
 
 0.7.1 (2012-05-19)
 ------------------

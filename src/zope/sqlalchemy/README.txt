@@ -104,7 +104,7 @@ same session. At present there are no users in the database.
     []
 
 We can now create a new user and commit the changes using Zope's transaction
-machinary, just as Zope's publisher would.
+machinery, just as Zope's publisher would.
 
     >>> session.add(User(id=1, name='bob'))
     >>> transaction.commit()
@@ -130,7 +130,7 @@ A new transaction requires a new session. Let's add an address.
     [<Address object at ...>]
     >>> str(bob.addresses[0].email)
     'bob@bob.bob'
-    >>> bob.addresses[0].email = 'wrong@wrong'    
+    >>> bob.addresses[0].email = 'wrong@wrong'
 
 To rollback a transaction, use transaction.abort().
 
@@ -153,7 +153,7 @@ to the DB.
     >>> conn = session.connection()
     >>> users = Base.metadata.tables['test_users']
     >>> conn.execute(users.update(users.c.name=='bob'), name='ben')
-    <sqlalchemy.engine.base.ResultProxy object at ...>
+    <sqlalchemy.engine.result.ResultProxy object at ...>
     >>> from zope.sqlalchemy import mark_changed
     >>> mark_changed(session)
     >>> transaction.commit()
@@ -170,12 +170,38 @@ If this is a problem you may tell the extension to place the session in the
     >>> session = Session()
     >>> conn = session.connection()
     >>> conn.execute(users.update(users.c.name=='ben'), name='bob')
-    <sqlalchemy.engine.base.ResultProxy object at ...>
+    <sqlalchemy.engine.result.ResultProxy object at ...>
     >>> transaction.commit()
     >>> session = Session()
     >>> str(session.query(User).all()[0].name)
     'bob'
     >>> transaction.abort()
+
+Long-lasting session scopes
+---------------------------
+
+The default behaviour of the transaction integration is to close the session
+after a commit. You can tell by trying to access an object after committing:
+
+    >>> bob = session.query(User).all()[0]
+    >>> transaction.commit()
+    >>> bob.name
+    Traceback (most recent call last):
+    DetachedInstanceError: Instance <User at ...> is not bound to a Session; attribute refresh operation cannot proceed
+
+To support cases where a session needs to last longer than a transaction
+(useful in test suites) you can specify to keep a session when creating the
+transaction extension:
+
+    >>> Session = scoped_session(sessionmaker(bind=engine,
+    ... twophase=TEST_TWOPHASE, extension=ZopeTransactionExtension(keep_session=True)))
+
+    >>> session = Session()
+    >>> bob = session.query(User).all()[0]
+    >>> bob.name = 'bobby'
+    >>> transaction.commit()
+    >>> bob.name
+    u'bobby'
 
 Development version
 ===================
