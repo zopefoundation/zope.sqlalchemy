@@ -40,6 +40,7 @@ Running the tests
 This package is distributed as a buildout. Using your desired python run:
 
 $ python bootstrap.py
+$ ./bin/buildout
 
 This will download the dependent packages and setup the test script, which may
 be run with:
