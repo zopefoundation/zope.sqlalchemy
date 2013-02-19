@@ -1,18 +1,7 @@
-import sys
-
 import os.path
 from setuptools import setup, find_packages
 
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    extras_require = {'test': []}
-else:
-    extras_require = {
-        'test': [
-            'pysqlite',
-            ]
-        }
+tests_require = ['zope.testing']
 
 setup(
     name='zope.sqlalchemy',
@@ -24,6 +13,7 @@ setup(
     namespace_packages=['zope'],
     test_suite='zope.sqlalchemy.tests.test_suite',
     author='Laurence Rowe',
+
     author_email='laurence@lrowe.co.uk',
     url='http://pypi.python.org/pypi/zope.sqlalchemy',
     description="Minimal Zope/SQLAlchemy transaction integration",
@@ -39,6 +29,7 @@ setup(
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.2",
+    "Programming Language :: Python :: 3.3",
     "License :: OSI Approved :: Zope Public License",
     "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -49,5 +40,6 @@ setup(
       'transaction',
       'zope.interface>=3.6.0',
       ],
-    extras_require=extras_require,
+    extras_require={'test': tests_require},
+    tests_require=tests_require,
     )

@@ -41,14 +41,17 @@ def b(s):
         return s
 
 import os
+import re
 import unittest
 import transaction
 import threading
 import time
+
 import sqlalchemy as sa
 from sqlalchemy import orm, sql, exc
 from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
+from zope.testing.renormalizing import RENormalizing
 
 TEST_TWOPHASE = bool(os.environ.get('TEST_TWOPHASE'))
 TEST_DSN = os.environ.get('TEST_DSN', 'sqlite:///:memory:')
@@ -602,11 +605,20 @@ def test_suite():
     from unittest import TestSuite, makeSuite
     import doctest
     optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+    checker = RENormalizing([
+        # Python 3 includes module name in exceptions
+        (re.compile(r"sqlalchemy.orm.exc.DetachedInstanceError:"),
+         "DetachedInstanceError:"),
+        # Python 3 drops the u'' prefix on unicode strings
+        (re.compile(r"u('[^']*')"),
+         r"\1"),
+    ])
     suite = TestSuite()
     suite.addTest(makeSuite(ZopeSQLAlchemyTests))
     suite.addTest(makeSuite(MultipleEngineTests))
     if TEST_DSN.startswith('postgres') or TEST_DSN.startswith('oracle'):
         suite.addTest(makeSuite(RetryTests))
-    suite.addTest(doctest.DocFileSuite('README.txt', optionflags=optionflags, tearDown=tearDownReadMe,
+    suite.addTest(doctest.DocFileSuite('README.txt', optionflags=optionflags,
+        checker=checker, tearDown=tearDownReadMe,
         globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE}))
     return suite
