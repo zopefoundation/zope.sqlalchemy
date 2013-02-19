@@ -1,6 +1,9 @@
 .installed.cfg
 .tox/
+*.pyc
+*.egg-info
 bin/
-eggs/
 develop-eggs/
-src/zope.sqlalchemy.egg-info/
+downloads/
+eggs/
+parts/
