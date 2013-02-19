@@ -7,6 +7,8 @@ Changes
 * Make life-time of sessions configurable. Specify `keep_session=True` when
   setting up the SA extension.
 
+* Python 3.3 compatibility.
+
 0.7.1 (2012-05-19)
 ------------------
 
