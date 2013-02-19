@@ -610,8 +610,9 @@ def test_suite():
         (re.compile(r"sqlalchemy.orm.exc.DetachedInstanceError:"),
          "DetachedInstanceError:"),
         # Python 3 drops the u'' prefix on unicode strings
-        (re.compile(r"u('[^']*')"),
-         r"\1"),
+        (re.compile(r"u('[^']*')"), r"\1"),
+        # PyPy includes __builtin__ in front of classes defined in doctests
+        (re.compile(r"__builtin__[.]Address"), "Address"),
     ])
     suite = TestSuite()
     suite.addTest(makeSuite(ZopeSQLAlchemyTests))
