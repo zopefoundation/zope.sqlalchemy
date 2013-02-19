@@ -166,8 +166,8 @@ to the DB.
 If this is a problem you may tell the extension to place the session in the
 'changed' state initially.
 
-    >>> Session.configure(extension=ZopeTransactionExtension('changed'))
     >>> Session.remove()
+    >>> Session.configure(extension=ZopeTransactionExtension('changed'))
     >>> session = Session()
     >>> conn = session.connection()
     >>> conn.execute(users.update(users.c.name=='ben'), name='bob')
