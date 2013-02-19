@@ -19,7 +19,7 @@
 # export TEST_DSN=postgres://plone:plone@localhost/test
 # export TEST_DSN=mssql://plone:plone@/test?dsn=mydsn
 #
-# To test in twophase commit mode export TEST_TWOPHASE=True 
+# To test in twophase commit mode export TEST_TWOPHASE=True
 #
 # NOTE: The sqlite that ships with Mac OS X 10.4 is buggy. Install a newer version (3.5.6)
 #       and rebuild pysqlite2 against it.
@@ -83,7 +83,7 @@ test_users = sa.Table('test_users', metadata,
     sa.Column('id', sa.Integer, primary_key=True),
     sa.Column('firstname', sa.VARCHAR(255)), # mssql cannot do equality on a text type
     sa.Column('lastname', sa.VARCHAR(255)),
-    )    
+    )
 test_skills = sa.Table('test_skills', metadata,
     sa.Column('id', sa.Integer, primary_key=True),
     sa.Column('user_id', sa.Integer),
@@ -116,9 +116,9 @@ def setup_mappers():
 
 class DummyException(Exception):
     pass
- 
+
 class DummyTargetRaised(DummyException):
-    pass  
+    pass
 
 class DummyTargetResult(DummyException):
     pass
@@ -129,13 +129,13 @@ class DummyDataManager(object):
         self.target = target
         self.args = args
         self.kwargs = kwargs
-    
+
     def abort(self, trans):
         pass
 
     def tpc_begin(self, trans):
         pass
-    
+
     def commit(self, trans):
         pass
 
@@ -154,18 +154,18 @@ class DummyDataManager(object):
 
     def tpc_abort(self, trans):
         pass
-    
+
     def sortKey(self):
         return self.key
 
 
 class ZopeSQLAlchemyTests(unittest.TestCase):
-        
+
     def setUp(self):
         self.mappers = setup_mappers()
         metadata.drop_all(engine)
         metadata.create_all(engine)
-    
+
     def tearDown(self):
         transaction.abort()
         metadata.drop_all(engine)
@@ -198,7 +198,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         conn = session.connection()
         conn.execute("SELECT 1 FROM test_users")
         mark_changed(session)
-        transaction.commit()        
+        transaction.commit()
 
     def testAbortAfterCommit(self):
         # This is a regression test which used to wedge the transaction
@@ -231,23 +231,23 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         query = session.query(User)
         rows = query.all()
         self.assertEqual(len(rows), 0)
-               
+
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
-        
+
         rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 2)
         row1 = rows[0]
         d = row1.asDict()
         self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
-        
+
         # bypass the session machinary
         stmt = sql.select(test_users.columns).order_by('id')
         conn = session.connection()
         results = conn.execute(stmt)
         self.assertEqual(results.fetchall(), [(1, 'udo', 'juergens'), (2, 'heino', 'n/a')])
-        
+
     def testRelations(self):
         session = Session()
         session.add(User(id=1,firstname='foo', lastname='bar'))
@@ -255,7 +255,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         user = session.query(User).filter_by(firstname='foo')[0]
         user.skills.append(Skill(id=1, name='Zope'))
         session.flush()
-    
+
     def testTransactionJoining(self):
         transaction.abort() # clean slate
         t = transaction.get()
@@ -271,33 +271,33 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         conn = Session().connection()
         self.assertTrue([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
              "Not joined transaction")
-    
+
     def testSavepoint(self):
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         t = transaction.get()
         session = Session()
         query = session.query(User)
         self.assertFalse(query.all(), "Users table should be empty")
-        
+
         s0 = t.savepoint(optimistic=True) # this should always work
-        
+
         if not use_savepoint:
             self.assertRaises(TypeError, t.savepoint)
             return # sqlite databases do not support savepoints
-        
+
         s1 = t.savepoint()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.flush()
         self.assertTrue(len(query.all())==1, "Users table should have one row")
-        
+
         s2 = t.savepoint()
         session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         self.assertTrue(len(query.all())==2, "Users table should have two rows")
-        
+
         s2.rollback()
         self.assertTrue(len(query.all())==1, "Users table should have one row")
-        
+
         s1.rollback()
         self.assertFalse(query.all(), "Users table should be empty")
 
@@ -305,33 +305,33 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         if not use_savepoint:
             return # sqlite databases do not support savepoints
-        
+
         t = transaction.get()
         session = Session()
         query = session.query(User)
         self.assertFalse(query.all(), "Users table should be empty")
-        
+
         s1 = t.savepoint()
         user = User(id=1, firstname='udo', lastname='juergens')
         session.add(user)
         session.flush()
-        
+
         s2 = t.savepoint()
         user.firstname='heino'
         session.flush()
         s2.rollback()
         self.assertEqual(user.firstname, 'udo', "User firstname attribute should have been rolled back")
-    
+
     def testCommit(self):
         session = Session()
-        
+
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         query = session.query(User)
         rows = query.all()
         self.assertEqual(len(rows), 0)
-        
+
         transaction.commit() # test a none modifying transaction works
-        
+
         session = Session()
         query = session.query(User)
 
@@ -341,13 +341,13 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 
         rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 2)
-        
+
         transaction.abort() # test that the abort really aborts
         session = Session()
         query = session.query(User)
         rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 0)
-        
+
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
@@ -355,7 +355,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         row1 = rows[0]
         d = row1.asDict()
         self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
-        
+
         transaction.commit()
 
         rows = query.order_by(User.id).all()
@@ -376,7 +376,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         transaction.commit()
-        
+
         session = Session()
         query = session.query(User)
         # lets just test that savepoints don't affect commits
@@ -400,13 +400,13 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
         transaction.commit()
-        
+
         # Test that we clean up after a tpc_abort
         t = transaction.get()
-        
+
         def target():
             return engine.connect().recover_twophase()
-        
+
         dummy = DummyDataManager(key='~~~dummy.last', target=target)
         t.join(dummy)
         session = Session()
@@ -421,14 +421,14 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             result = e.args[0]
         except DummyTargetRaised as e:
             raise e.args[0]
-        
+
         self.assertEqual(len(result), 1, "Should have been one prepared transaction when dummy aborted")
-        
+
         transaction.begin()
-    
+
         self.assertEqual(len(engine.connect().recover_twophase()), 0, "Test no outstanding prepared transactions")
 
-    
+
     def testThread(self):
         transaction.abort()
         global thread_error
@@ -438,7 +438,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
                 session = Session()
                 metadata.drop_all(engine)
                 metadata.create_all(engine)
-            
+
                 query = session.query(User)
                 rows = query.all()
                 self.assertEqual(len(rows), 0)
@@ -456,7 +456,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
                 global thread_error
                 thread_error = err
             transaction.abort()
-        
+
         thread = threading.Thread(target=target)
         thread.start()
         thread.join()
@@ -486,7 +486,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertEqual(len(results.fetchall()), 2)
 
 class RetryTests(unittest.TestCase):
-    
+
     def setUp(self):
         self.mappers = setup_mappers()
         metadata.drop_all(engine)
@@ -567,14 +567,14 @@ class RetryTests(unittest.TestCase):
 
 
 class MultipleEngineTests(unittest.TestCase):
-        
+
     def setUp(self):
         self.mappers = setup_mappers()
         bound_metadata1.drop_all()
         bound_metadata1.create_all()
         bound_metadata2.drop_all()
         bound_metadata2.create_all()
-    
+
     def tearDown(self):
         transaction.abort()
         bound_metadata1.drop_all()
