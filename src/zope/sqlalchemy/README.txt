@@ -154,7 +154,7 @@ to the DB.
     >>> conn = session.connection()
     >>> users = Base.metadata.tables['test_users']
     >>> conn.execute(users.update(users.c.name=='bob'), name='ben')
-    <sqlalchemy.engine.result.ResultProxy object at ...>
+    <sqlalchemy.engine...ResultProxy object at ...>
     >>> from zope.sqlalchemy import mark_changed
     >>> mark_changed(session)
     >>> transaction.commit()
@@ -171,7 +171,7 @@ If this is a problem you may tell the extension to place the session in the
     >>> session = Session()
     >>> conn = session.connection()
     >>> conn.execute(users.update(users.c.name=='ben'), name='bob')
-    <sqlalchemy.engine.result.ResultProxy object at ...>
+    <sqlalchemy.engine...ResultProxy object at ...>
     >>> transaction.commit()
     >>> session = Session()
     >>> str(session.query(User).all()[0].name)
