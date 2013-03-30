@@ -204,6 +204,11 @@ transaction extension:
     >>> bob.name
     u'bobby'
 
+The session must then be closed manually:
+
+    >>> session.close()
+
+
 Development version
 ===================
 
