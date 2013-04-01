@@ -79,6 +79,27 @@ class Skill(SimpleModel):
 engine = sa.create_engine(TEST_DSN)
 engine2 = sa.create_engine(TEST_DSN)
 
+# See https://code.google.com/p/pysqlite-static-env/
+HAS_PATCHED_PYSQLITE = False
+if engine.url.drivername == 'sqlite':
+    try:
+        from pysqlite2.dbapi2 import Connection
+    except ImportError:
+        pass
+    else:
+        if hasattr(Connection, 'operation_needs_transaction_callback'):
+            HAS_PATCHED_PYSQLITE = True
+
+if HAS_PATCHED_PYSQLITE:
+    from sqlalchemy import event
+    from zope.sqlalchemy.datamanager import NO_SAVEPOINT_SUPPORT
+    NO_SAVEPOINT_SUPPORT.remove('sqlite')
+
+    @event.listens_for(engine, 'connect')
+    def connect(dbapi_connection, connection_record):
+        dbapi_connection.operation_needs_transaction_callback = lambda x: True
+
+
 Session = orm.scoped_session(orm.sessionmaker(
     bind=engine,
     extension=tx.ZopeTransactionExtension(),
