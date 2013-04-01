@@ -28,11 +28,13 @@ import sys
 
 PY3 = sys.version_info[0] == 3
 
+
 def u(s):
     if PY3:
         return s
     else:
         return s.decode('utf-8')
+
 
 def b(s):
     if PY3:
@@ -56,15 +58,22 @@ from zope.testing.renormalizing import RENormalizing
 TEST_TWOPHASE = bool(os.environ.get('TEST_TWOPHASE'))
 TEST_DSN = os.environ.get('TEST_DSN', 'sqlite:///:memory:')
 
+
 class SimpleModel(object):
     def __init__(self, **kw):
         for k, v in kw.items():
             setattr(self, k, v)
+
     def asDict(self):
         return dict((k, v) for k, v in self.__dict__.items() if not k.startswith('_'))
 
-class User(SimpleModel): pass
-class Skill(SimpleModel): pass
+
+class User(SimpleModel):
+    pass
+
+
+class Skill(SimpleModel):
+    pass
 
 
 engine = sa.create_engine(TEST_DSN)
@@ -74,25 +83,32 @@ Session = orm.scoped_session(orm.sessionmaker(
     bind=engine,
     extension=tx.ZopeTransactionExtension(),
     twophase=TEST_TWOPHASE,
-    ))
+))
+
 UnboundSession = orm.scoped_session(orm.sessionmaker(
     extension=tx.ZopeTransactionExtension(),
     twophase=TEST_TWOPHASE,
-    ))
+))
 
-metadata = sa.MetaData() # best to use unbound metadata
+metadata = sa.MetaData()  # best to use unbound metadata
 
-test_users = sa.Table('test_users', metadata,
+
+test_users = sa.Table(
+    'test_users',
+    metadata,
     sa.Column('id', sa.Integer, primary_key=True),
-    sa.Column('firstname', sa.VARCHAR(255)), # mssql cannot do equality on a text type
+    sa.Column('firstname', sa.VARCHAR(255)),  # mssql cannot do equality on a text type
     sa.Column('lastname', sa.VARCHAR(255)),
-    )
-test_skills = sa.Table('test_skills', metadata,
+)
+
+test_skills = sa.Table(
+    'test_skills',
+    metadata,
     sa.Column('id', sa.Integer, primary_key=True),
     sa.Column('user_id', sa.Integer),
     sa.Column('name', sa.VARCHAR(255)),
     sa.ForeignKeyConstraint(('user_id',), ('test_users.id',)),
-    )
+)
 
 bound_metadata1 = sa.MetaData(engine)
 bound_metadata2 = sa.MetaData(engine2)
@@ -100,31 +116,44 @@ bound_metadata2 = sa.MetaData(engine2)
 test_one = sa.Table('test_one', bound_metadata1, sa.Column('id', sa.Integer, primary_key=True))
 test_two = sa.Table('test_two', bound_metadata2, sa.Column('id', sa.Integer, primary_key=True))
 
-class TestOne(SimpleModel): pass
-class TestTwo(SimpleModel): pass
+
+class TestOne(SimpleModel):
+    pass
+
+
+class TestTwo(SimpleModel):
+    pass
+
 
 def setup_mappers():
     orm.clear_mappers()
     # Other tests can clear mappers by calling clear_mappers(),
     # be more robust by setting up mappers in the test setup.
-    m1 = orm.mapper(User, test_users,
-                    properties = {'skills': orm.relation(Skill,
-                       primaryjoin=test_users.columns['id']==test_skills.columns['user_id']),
-                    })
+    m1 = orm.mapper(
+        User,
+        test_users,
+        properties={'skills': orm.relation(
+            Skill,
+            primaryjoin=test_users.columns['id'] == test_skills.columns['user_id']),
+        })
     m2 = orm.mapper(Skill, test_skills)
 
     m3 = orm.mapper(TestOne, test_one)
     m4 = orm.mapper(TestTwo, test_two)
     return [m1, m2, m3, m4]
 
+
 class DummyException(Exception):
     pass
+
 
 class DummyTargetRaised(DummyException):
     pass
 
+
 class DummyTargetResult(DummyException):
     pass
+
 
 class DummyDataManager(object):
     def __init__(self, key, target=None, args=(), kwargs={}):
@@ -180,7 +209,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = Session()
         mark_changed(session)
         self.assertTrue(id(session) in zope.sqlalchemy.datamanager._SESSION_STATE)
-
 
     def testAbortBeforeCommit(self):
         # Simulate what happens in a conflict error
@@ -243,7 +271,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         row1 = rows[0]
         d = row1.asDict()
-        self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
+        self.assertEqual(d, {'firstname': 'udo', 'lastname': 'juergens', 'id': 1})
 
         # bypass the session machinary
         stmt = sql.select(test_users.columns).order_by('id')
@@ -253,27 +281,30 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 
     def testRelations(self):
         session = Session()
-        session.add(User(id=1,firstname='foo', lastname='bar'))
+        session.add(User(id=1, firstname='foo', lastname='bar'))
 
         user = session.query(User).filter_by(firstname='foo')[0]
         user.skills.append(Skill(id=1, name='Zope'))
         session.flush()
 
     def testTransactionJoining(self):
-        transaction.abort() # clean slate
+        transaction.abort()  # clean slate
         t = transaction.get()
-        self.assertFalse([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-             "Joined transaction too early")
+        self.assertFalse(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Joined transaction too early")
         session = Session()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         t = transaction.get()
         # Expect this to fail with SQLAlchemy 0.4
-        self.assertTrue([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-             "Not joined transaction")
+        self.assertTrue(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Not joined transaction")
         transaction.abort()
         conn = Session().connection()
-        self.assertTrue([r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-             "Not joined transaction")
+        self.assertTrue(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Not joined transaction")
 
     def testSavepoint(self):
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
@@ -282,24 +313,24 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         query = session.query(User)
         self.assertFalse(query.all(), "Users table should be empty")
 
-        s0 = t.savepoint(optimistic=True) # this should always work
+        s0 = t.savepoint(optimistic=True)  # this should always work
 
         if not use_savepoint:
             self.assertRaises(TypeError, t.savepoint)
-            return # sqlite databases do not support savepoints
+            return  # sqlite databases do not support savepoints
 
         s1 = t.savepoint()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         session.flush()
-        self.assertTrue(len(query.all())==1, "Users table should have one row")
+        self.assertTrue(len(query.all()) == 1, "Users table should have one row")
 
         s2 = t.savepoint()
         session.add(User(id=2, firstname='heino', lastname='n/a'))
         session.flush()
-        self.assertTrue(len(query.all())==2, "Users table should have two rows")
+        self.assertTrue(len(query.all()) == 2, "Users table should have two rows")
 
         s2.rollback()
-        self.assertTrue(len(query.all())==1, "Users table should have one row")
+        self.assertTrue(len(query.all()) == 1, "Users table should have one row")
 
         s1.rollback()
         self.assertFalse(query.all(), "Users table should be empty")
@@ -307,7 +338,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def testRollbackAttributes(self):
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         if not use_savepoint:
-            return # sqlite databases do not support savepoints
+            return  # sqlite databases do not support savepoints
 
         t = transaction.get()
         session = Session()
@@ -320,7 +351,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.flush()
 
         s2 = t.savepoint()
-        user.firstname='heino'
+        user.firstname = 'heino'
         session.flush()
         s2.rollback()
         self.assertEqual(user.firstname, 'udo', "User firstname attribute should have been rolled back")
@@ -333,7 +364,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         rows = query.all()
         self.assertEqual(len(rows), 0)
 
-        transaction.commit() # test a none modifying transaction works
+        transaction.commit()  # test a none modifying transaction works
 
         session = Session()
         query = session.query(User)
@@ -345,7 +376,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         rows = query.order_by(User.id).all()
         self.assertEqual(len(rows), 2)
 
-        transaction.abort() # test that the abort really aborts
+        transaction.abort()  # test that the abort really aborts
         session = Session()
         query = session.query(User)
         rows = query.order_by(User.id).all()
@@ -357,7 +388,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         rows = query.order_by(User.id).all()
         row1 = rows[0]
         d = row1.asDict()
-        self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
+        self.assertEqual(d, {'firstname': 'udo', 'lastname': 'juergens', 'id': 1})
 
         transaction.commit()
 
@@ -365,7 +396,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         row1 = rows[0]
         d = row1.asDict()
-        self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
+        self.assertEqual(d, {'firstname': 'udo', 'lastname': 'juergens', 'id': 1})
 
         # bypass the session (and transaction) machinary
         results = engine.connect().execute(test_users.select())
@@ -431,11 +462,11 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 
         self.assertEqual(len(engine.connect().recover_twophase()), 0, "Test no outstanding prepared transactions")
 
-
     def testThread(self):
         transaction.abort()
         global thread_error
         thread_error = None
+
         def target():
             try:
                 session = Session()
@@ -454,7 +485,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
                 self.assertEqual(len(rows), 2)
                 row1 = rows[0]
                 d = row1.asDict()
-                self.assertEqual(d, {'firstname' : 'udo', 'lastname' : 'juergens', 'id' : 1})
+                self.assertEqual(d, {'firstname': 'udo', 'lastname': 'juergens', 'id': 1})
             except Exception as err:
                 global thread_error
                 thread_error = err
@@ -464,7 +495,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         thread.start()
         thread.join()
         if thread_error is not None:
-            raise thread_error # reraise in current thread
+            raise thread_error  # reraise in current thread
 
     def testBulkDelete(self):
         session = Session()
@@ -485,8 +516,9 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = Session()
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
-        results = engine.connect().execute(test_users.select(test_users.c.lastname=="smith"))
+        results = engine.connect().execute(test_users.select(test_users.c.lastname == "smith"))
         self.assertEqual(len(results.fetchall()), 2)
+
 
 class RetryTests(unittest.TestCase):
 
@@ -504,12 +536,12 @@ class RetryTests(unittest.TestCase):
             bind=e1,
             extension=tx.ZopeTransactionExtension(transaction_manager=self.tm1),
             twophase=TEST_TWOPHASE,
-            )()
+        )()
         self.s2 = orm.sessionmaker(
             bind=e2,
             extension=tx.ZopeTransactionExtension(transaction_manager=self.tm2),
             twophase=TEST_TWOPHASE,
-            )()
+        )()
         self.tm1.begin()
         self.s1.add(User(id=1, firstname='udo', lastname='juergens'))
         self.tm1.commit()
@@ -525,9 +557,9 @@ class RetryTests(unittest.TestCase):
         tm1, tm2, s1, s2 = self.tm1, self.tm2, self.s1, self.s2
         # make sure we actually start a session.
         tm1.begin()
-        self.assertTrue(len(s1.query(User).all())==1, "Users table should have one row")
+        self.assertTrue(len(s1.query(User).all()) == 1, "Users table should have one row")
         tm2.begin()
-        self.assertTrue(len(s2.query(User).all())==1, "Users table should have one row")
+        self.assertTrue(len(s2.query(User).all()) == 1, "Users table should have one row")
         s1.query(User).delete()
         user = s2.query(User).get(1)
         user.lastname = u('smith')
@@ -545,10 +577,10 @@ class RetryTests(unittest.TestCase):
         tm1, tm2, s1, s2 = self.tm1, self.tm2, self.s1, self.s2
         # make sure we actually start a session.
         tm1.begin()
-        self.assertTrue(len(s1.query(User).all())==1, "Users table should have one row")
+        self.assertTrue(len(s1.query(User).all()) == 1, "Users table should have one row")
         tm2.begin()
         s2.connection().execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
-        self.assertTrue(len(s2.query(User).all())==1, "Users table should have one row")
+        self.assertTrue(len(s2.query(User).all()) == 1, "Users table should have one row")
         s1.query(User).delete()
         raised = False
 
@@ -566,7 +598,7 @@ class RetryTests(unittest.TestCase):
             retryable = tm2._retryable(type(e), e)
             self.assertTrue(retryable, "Error should be retryable")
         self.assertTrue(raised, "Did not raise expected error")
-        thread.join() # well, we must have joined by now
+        thread.join()  # well, we must have joined by now
 
 
 class MultipleEngineTests(unittest.TestCase):
@@ -596,10 +628,12 @@ class MultipleEngineTests(unittest.TestCase):
         rows = session.query(TestTwo).all()
         self.assertEqual(len(rows), 1)
 
+
 def tearDownReadMe(test):
     Base = test.globs['Base']
     engine = test.globs['engine']
     Base.metadata.drop_all(engine)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
@@ -620,6 +654,6 @@ def test_suite():
     if TEST_DSN.startswith('postgres') or TEST_DSN.startswith('oracle'):
         suite.addTest(makeSuite(RetryTests))
     suite.addTest(doctest.DocFileSuite('README.txt', optionflags=optionflags,
-        checker=checker, tearDown=tearDownReadMe,
-        globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE}))
+                  checker=checker, tearDown=tearDownReadMe,
+                  globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE}))
     return suite
