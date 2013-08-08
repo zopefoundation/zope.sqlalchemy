@@ -239,4 +239,6 @@ class ZopeTransactionExtension(SessionExtension):
         mark_changed(session, self.transaction_manager)
 
     def before_commit(self, session):
+        if session.transaction.nested:
+            return
         assert self.transaction_manager.get().status == ZopeStatus.COMMITTING, "Transaction must be committed using the transaction manager"
