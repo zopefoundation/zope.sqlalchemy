@@ -4,6 +4,12 @@ Changes
 0.7.3 (unreleased)
 ------------------
 
+* Prevent the ``Session`` object from getting into a "wedged" state if joining
+  a transaction fails. With thread scoped sessions that are reused this can cause
+  persistent errors requiring a server restart.
+
+  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/2
+
 0.7.2 (2013-02-19)
 ------------------
 
