@@ -64,6 +64,7 @@ class SessionDataManager(object):
         self.transaction_manager = transaction_manager
         self.tx = session.transaction._iterate_parents()[-1]
         self.session = session
+        transaction_manager.get().join(self)
         _SESSION_STATE[id(session)] = status
         self.state = 'init'
         self.keep_session = keep_session
@@ -198,8 +199,7 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
             DataManager = TwoPhaseSessionDataManager
         else:
             DataManager = SessionDataManager
-        transaction_manager.get().join(DataManager(session, initial_state, transaction_manager, keep_session=keep_session))
-
+        DataManager(session, initial_state, transaction_manager, keep_session=keep_session)
 
 def mark_changed(session, transaction_manager=zope_transaction.manager):
     """Mark a session as needing to be committed.
