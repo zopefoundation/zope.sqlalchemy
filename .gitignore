@@ -4,6 +4,7 @@
 *.egg-info
 bin/
 develop-eggs/
+dist/
 downloads/
 eggs/
 parts/
