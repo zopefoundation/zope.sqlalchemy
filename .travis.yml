@@ -5,13 +5,12 @@ python:
   - "3.2"
   - "3.3"
 before_install:
+  - sudo -u postgres createuser --no-createdb --no-createrole --no-superuser $USER
+  - sudo -u postgres createdb --owner=$USER zope_sqlalchemy_tests
   - pip install -U setuptools
 install:
   - python bootstrap.py
   - bin/buildout -c postgres.cfg
-before_script:
-  - sudo -u postgres createuser --no-superuser $USER
-  - sudo -u postgres createdb --owner=$USER zope_sqlalchemy_tests
 script:
   - bin/test
   - bin/testpg
