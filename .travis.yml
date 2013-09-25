@@ -10,7 +10,7 @@ install:
   - python bootstrap.py
   - bin/buildout -c postgres.cfg
 before_script:
-  - sudo -u postgres createuser $USER
+  - sudo -u postgres createuser --no-superuser $USER
   - sudo -u postgres createdb --owner=$USER zope_sqlalchemy_tests
 script:
   - bin/test
