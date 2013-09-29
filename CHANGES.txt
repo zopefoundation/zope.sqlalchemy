@@ -4,6 +4,13 @@ Changes
 0.7.4 (unreleased)
 ------------------
 
+* Add a new function zope.sqlalchemy.register(), which replaces the
+  direct use of ZopeTransactionExtension to make use
+  of the newer SQLAlchemy event system to establish instrumentation on
+  the given Session instance/class/factory.   Requires at least
+  SQLAlchemy 0.7.
+
+
 0.7.3 (2013-09-25)
 ------------------
 
@@ -56,7 +63,7 @@ Changes
 ----------------
 
 * Remove redundant session.flush() / session.clear() on savepoint operations.
-  These were only needed with SQLAlchemy 0.4.x. 
+  These were only needed with SQLAlchemy 0.4.x.
 
 * SQLAlchemy 0.6.x support. Require SQLAlchemy >= 0.5.1.
 
@@ -101,7 +108,7 @@ Bugs fixed:
 
 Feature changes:
 
-* For correctness and consistency with ZODB, renamed the function 'invalidate' 
+* For correctness and consistency with ZODB, renamed the function 'invalidate'
   to 'mark_changed' and the status 'invalidated' to 'changed'.
 
 0.2 (2008-06-28)

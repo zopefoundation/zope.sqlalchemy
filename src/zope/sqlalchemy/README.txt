@@ -83,7 +83,7 @@ Now to define the mapper classes.
     ...     email = Column('email', String(50))
     ...     user_id = Column('user_id', Integer, ForeignKey('test_users.id'))
 
-Create an engine and setup the tables. Note that for this example to work a 
+Create an engine and setup the tables. Note that for this example to work a
 recent version of sqlite/pysqlite is required. 3.4.0 seems to be sufficient.
 
     >>> engine = create_engine(TEST_DSN, convert_unicode=True)
@@ -207,6 +207,24 @@ transaction extension:
 The session must then be closed manually:
 
     >>> session.close()
+
+Registration Using SQLAlchemy Events
+====================================
+
+The zope.sqlalchemy.register() function performs the same function as the
+ZopeTransactionExtension, except makes use of the newer SQLAlchemy event system
+which superseded the extension system as of SQLAlchemy 0.7.   Usage is similar:
+
+    >>> from zope.sqlalchemy import register
+    >>> Session = scoped_session(sessionmaker(bind=engine,
+    ... twophase=TEST_TWOPHASE))
+    >>> register(Session, keep_session=True)
+    >>> session = Session()
+    >>> jack = User(id=2, name='jack')
+    >>> session.add(jack)
+    >>> transaction.commit()
+    >>> engine.execute("select name from test_users where id=2").scalar()
+    u'jack'
 
 
 Development version

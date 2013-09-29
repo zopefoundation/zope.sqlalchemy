@@ -114,6 +114,13 @@ UnboundSession = orm.scoped_session(orm.sessionmaker(
     twophase=TEST_TWOPHASE,
 ))
 
+EventSession = orm.scoped_session(orm.sessionmaker(
+    bind=engine,
+    twophase=TEST_TWOPHASE,
+))
+
+tx.register(EventSession)
+
 metadata = sa.MetaData()  # best to use unbound metadata
 
 
@@ -330,6 +337,24 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
             "Not joined transaction")
 
+    def testTransactionJoiningUsingRegister(self):
+        transaction.abort()  # clean slate
+        t = transaction.get()
+        self.assertFalse(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Joined transaction too early")
+        session = EventSession()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        t = transaction.get()
+        self.assertTrue(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Not joined transaction")
+        transaction.abort()
+        conn = EventSession().connection()
+        self.assertTrue(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Not joined transaction")
+
     def testSavepoint(self):
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         t = transaction.get()
@@ -538,6 +563,28 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.add(User(id=2, firstname='heino', lastname='n/a'))
         transaction.commit()
         session = Session()
+        session.query(User).update(dict(lastname="smith"))
+        transaction.commit()
+        results = engine.connect().execute(test_users.select(test_users.c.lastname == "smith"))
+        self.assertEqual(len(results.fetchall()), 2)
+
+    def testBulkDeleteUsingRegister(self):
+        session = EventSession()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
+        transaction.commit()
+        session = EventSession()
+        session.query(User).delete()
+        transaction.commit()
+        results = engine.connect().execute(test_users.select())
+        self.assertEqual(len(results.fetchall()), 0)
+
+    def testBulkUpdateUsingRegister(self):
+        session = EventSession()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
+        transaction.commit()
+        session = EventSession()
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
         results = engine.connect().execute(test_users.select(test_users.c.lastname == "smith"))
