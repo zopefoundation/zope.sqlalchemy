@@ -49,6 +49,9 @@ import transaction
 import threading
 import time
 
+from transaction._transaction import Status as ZopeStatus
+from transaction.interfaces import TransactionFailedError
+
 import sqlalchemy as sa
 from sqlalchemy import orm, sql, exc
 from zope.sqlalchemy import datamanager as tx
@@ -110,6 +113,13 @@ UnboundSession = orm.scoped_session(orm.sessionmaker(
     extension=tx.ZopeTransactionExtension(),
     twophase=TEST_TWOPHASE,
 ))
+
+EventSession = orm.scoped_session(orm.sessionmaker(
+    bind=engine,
+    twophase=TEST_TWOPHASE,
+))
+
+tx.register(EventSession)
 
 metadata = sa.MetaData()  # best to use unbound metadata
 
@@ -327,6 +337,24 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
             "Not joined transaction")
 
+    def testTransactionJoiningUsingRegister(self):
+        transaction.abort()  # clean slate
+        t = transaction.get()
+        self.assertFalse(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Joined transaction too early")
+        session = EventSession()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        t = transaction.get()
+        self.assertTrue(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Not joined transaction")
+        transaction.abort()
+        conn = EventSession().connection()
+        self.assertTrue(
+            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
+            "Not joined transaction")
+
     def testSavepoint(self):
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         t = transaction.get()
@@ -539,6 +567,60 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.commit()
         results = engine.connect().execute(test_users.select(test_users.c.lastname == "smith"))
         self.assertEqual(len(results.fetchall()), 2)
+
+    def testBulkDeleteUsingRegister(self):
+        session = EventSession()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
+        transaction.commit()
+        session = EventSession()
+        session.query(User).delete()
+        transaction.commit()
+        results = engine.connect().execute(test_users.select())
+        self.assertEqual(len(results.fetchall()), 0)
+
+    def testBulkUpdateUsingRegister(self):
+        session = EventSession()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
+        transaction.commit()
+        session = EventSession()
+        session.query(User).update(dict(lastname="smith"))
+        transaction.commit()
+        results = engine.connect().execute(test_users.select(test_users.c.lastname == "smith"))
+        self.assertEqual(len(results.fetchall()), 2)
+
+    def testFailedJoin(self):
+        # When a join is issued while the transaction is in COMMITFAILED, the
+        # session is never closed and the session id stays in _SESSION_STATE,
+        # which means the session won't be joined in the future either. This
+        # causes the session to stay open forever, potentially accumulating
+        # data, but never issuing a commit.
+        dummy = DummyDataManager(key='dummy.first')
+        transaction.get().join(dummy)
+        try:
+            transaction.commit()
+        except DummyException:
+            # Commit raised an error, we are now in COMMITFAILED
+            pass
+        self.assertEqual(transaction.get().status, ZopeStatus.COMMITFAILED)
+
+        session = Session()
+        # try to interact with the session while the transaction is still
+        # in COMMITFAILED
+        self.assertRaises(TransactionFailedError,
+                          session.query(User).all)
+        transaction.abort()
+
+        # start a new transaction everything should be ok now
+        transaction.begin()
+        session = Session()
+        self.assertEqual([], session.query(User).all())
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+
+        # abort transaction, session should be closed without commit
+        transaction.abort()
+        self.assertEqual([], session.query(User).all())
 
 
 class RetryTests(unittest.TestCase):

@@ -64,6 +64,7 @@ class SessionDataManager(object):
         self.transaction_manager = transaction_manager
         self.tx = session.transaction._iterate_parents()[-1]
         self.session = session
+        transaction_manager.get().join(self)
         _SESSION_STATE[id(session)] = status
         self.state = 'init'
         self.keep_session = keep_session
@@ -198,8 +199,7 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
             DataManager = TwoPhaseSessionDataManager
         else:
             DataManager = SessionDataManager
-        transaction_manager.get().join(DataManager(session, initial_state, transaction_manager, keep_session=keep_session))
-
+        DataManager(session, initial_state, transaction_manager, keep_session=keep_session)
 
 def mark_changed(session, transaction_manager=zope_transaction.manager):
     """Mark a session as needing to be committed.
@@ -242,3 +242,40 @@ class ZopeTransactionExtension(SessionExtension):
         if session.transaction.nested:
             return
         assert self.transaction_manager.get().status == ZopeStatus.COMMITTING, "Transaction must be committed using the transaction manager"
+
+
+def register(session, initial_state=STATUS_ACTIVE,
+            transaction_manager=zope_transaction.manager, keep_session=False):
+    """Register ZopeTransaction listener events on the
+    given Session or Session factory/class.
+
+    This function requires at least SQLAlchemy 0.7 and makes use
+    of the newer sqlalchemy.event package in order to register event listeners
+    on the given Session.
+
+    The session argument here may be a Session class or subclass, a
+    sessionmaker or scoped_session instance, or a specific Session instance.
+    Event listening will be specific to the scope of the type of argument
+    passed, including specificity to its subclass as well as its identity.
+
+    """
+
+    from sqlalchemy import __version__
+    assert tuple(int(x) for x in __version__.split(".")) >= (0, 7), \
+        "SQLAlchemy version 0.7 or greater required to use register()"
+
+    from sqlalchemy import event
+
+    ext = ZopeTransactionExtension(initial_state=initial_state,
+                                    transaction_manager=transaction_manager,
+                                    keep_session=keep_session)
+
+    event.listen(session, "after_begin", ext.after_begin)
+    event.listen(session, "after_attach", ext.after_attach)
+    event.listen(session, "after_flush", ext.after_flush)
+    event.listen(session, "after_bulk_update", ext.after_bulk_update)
+    event.listen(session, "after_bulk_delete", ext.after_bulk_delete)
+    event.listen(session, "before_commit", ext.before_commit)
+
+
+
