@@ -10,6 +10,11 @@ Changes
   the given Session instance/class/factory.   Requires at least
   SQLAlchemy 0.7.
 
+* Fix `keep_session=True` doesn't work when a transaction is joined by flush
+  and other manngers bug.
+
+  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/5
+
 
 0.7.3 (2013-09-25)
 ------------------
