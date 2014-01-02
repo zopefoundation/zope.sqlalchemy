@@ -119,6 +119,12 @@ EventSession = orm.scoped_session(orm.sessionmaker(
     twophase=TEST_TWOPHASE,
 ))
 
+KeepSession = orm.scoped_session(orm.sessionmaker(
+    bind=engine,
+    extension=tx.ZopeTransactionExtension(keep_session=True),
+    twophase=TEST_TWOPHASE,
+))
+
 tx.register(EventSession)
 
 metadata = sa.MetaData()  # best to use unbound metadata
@@ -621,6 +627,23 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         # abort transaction, session should be closed without commit
         transaction.abort()
         self.assertEqual([], session.query(User).all())
+
+    def testKeepSession(self):
+        session = KeepSession()
+
+        with transaction.manager:
+            session.add(User(id=1, firstname='foo', lastname='bar'))
+
+        user = session.query(User).get(1)
+
+        # if the keep_session works correctly, this transaction will not close
+        # the session after commit
+        with transaction.manager:
+            user.firstname = 'super'
+            session.flush()
+
+        # make sure the session is still attached to user
+        self.assertEqual(user.firstname, 'super')
 
 
 class RetryTests(unittest.TestCase):
