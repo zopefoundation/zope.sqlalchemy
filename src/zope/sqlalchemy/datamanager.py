@@ -201,12 +201,13 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
             DataManager = SessionDataManager
         DataManager(session, initial_state, transaction_manager, keep_session=keep_session)
 
-def mark_changed(session, transaction_manager=zope_transaction.manager):
+
+def mark_changed(session, transaction_manager=zope_transaction.manager, keep_session=False):
     """Mark a session as needing to be committed.
     """
     session_id = id(session)
     assert _SESSION_STATE.get(session_id, None) is not STATUS_READONLY, "Session already registered as read only"
-    join_transaction(session, STATUS_CHANGED, transaction_manager)
+    join_transaction(session, STATUS_CHANGED, transaction_manager, keep_session)
     _SESSION_STATE[session_id] = STATUS_CHANGED
 
 
@@ -230,20 +231,20 @@ class ZopeTransactionExtension(SessionExtension):
         join_transaction(session, self.initial_state, self.transaction_manager, self.keep_session)
 
     def after_flush(self, session, flush_context):
-        mark_changed(session, self.transaction_manager)
+        mark_changed(session, self.transaction_manager, self.keep_session)
 
     def after_bulk_update(self, session, query, query_context, result):
-        mark_changed(session, self.transaction_manager)
+        mark_changed(session, self.transaction_manager, self.keep_session)
 
     def after_bulk_delete(self, session, query, query_context, result):
-        mark_changed(session, self.transaction_manager)
+        mark_changed(session, self.transaction_manager, self.keep_session)
 
     def before_commit(self, session):
         assert self.transaction_manager.get().status == ZopeStatus.COMMITTING, "Transaction must be committed using the transaction manager"
 
 
 def register(session, initial_state=STATUS_ACTIVE,
-            transaction_manager=zope_transaction.manager, keep_session=False):
+             transaction_manager=zope_transaction.manager, keep_session=False):
     """Register ZopeTransaction listener events on the
     given Session or Session factory/class.
 
@@ -264,9 +265,11 @@ def register(session, initial_state=STATUS_ACTIVE,
 
     from sqlalchemy import event
 
-    ext = ZopeTransactionExtension(initial_state=initial_state,
-                                    transaction_manager=transaction_manager,
-                                    keep_session=keep_session)
+    ext = ZopeTransactionExtension(
+        initial_state=initial_state,         
+        transaction_manager=transaction_manager,
+        keep_session=keep_session,
+    )
 
     event.listen(session, "after_begin", ext.after_begin)
     event.listen(session, "after_attach", ext.after_attach)
@@ -274,6 +277,3 @@ def register(session, initial_state=STATUS_ACTIVE,
     event.listen(session, "after_bulk_update", ext.after_bulk_update)
     event.listen(session, "after_bulk_delete", ext.after_bulk_delete)
     event.listen(session, "before_commit", ext.before_commit)
-
-
-
