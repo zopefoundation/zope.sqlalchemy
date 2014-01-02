@@ -631,19 +631,24 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def testKeepSession(self):
         session = KeepSession()
 
-        with transaction.manager:
-            session.add(User(id=1, firstname='foo', lastname='bar'))
+        try:
+            with transaction.manager:
+                session.add(User(id=1, firstname='foo', lastname='bar'))
 
-        user = session.query(User).get(1)
+            user = session.query(User).get(1)
 
-        # if the keep_session works correctly, this transaction will not close
-        # the session after commit
-        with transaction.manager:
-            user.firstname = 'super'
-            session.flush()
+            # if the keep_session works correctly, this transaction will not close
+            # the session after commit
+            with transaction.manager:
+                user.firstname = 'super'
+                session.flush()
 
-        # make sure the session is still attached to user
-        self.assertEqual(user.firstname, 'super')
+            # make sure the session is still attached to user
+            self.assertEqual(user.firstname, 'super')
+
+        finally:
+            # KeepSession does not rollback on transaction abort
+            session.rollback()
 
 
 class RetryTests(unittest.TestCase):
