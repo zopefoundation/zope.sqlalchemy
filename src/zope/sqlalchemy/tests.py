@@ -481,6 +481,22 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         results = engine.connect().execute(test_users.select())
         self.assertEqual(len(results.fetchall()), 1)
 
+    def testNestedSessionCommitAllowed(self):
+        # Existing code might use nested transactions
+        if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
+            return
+        session = Session()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        session.begin_nested()
+        session.add(User(id=2, firstname='heino', lastname='n/a'))
+        session.commit()
+        transaction.commit()
+
+    def testSessionCommitDisallowed(self):
+        session = Session()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        self.assertRaises(AssertionError, session.commit)
+
     def testTwoPhase(self):
         session = Session()
         if not session.twophase:
