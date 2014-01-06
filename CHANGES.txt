@@ -1,14 +1,21 @@
 Changes
 =======
 
-0.7.4 (unreleased)
+0.7.4 (2014-01-06)
 ------------------
+
+* Allow ``session.commit()`` on nested transactions to facilitate integration
+  of existing code that might not use ``transaction.savepoint()``.
+
+  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/1
 
 * Add a new function zope.sqlalchemy.register(), which replaces the
   direct use of ZopeTransactionExtension to make use
   of the newer SQLAlchemy event system to establish instrumentation on
   the given Session instance/class/factory.   Requires at least
   SQLAlchemy 0.7.
+
+  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/4
 
 * Fix `keep_session=True` doesn't work when a transaction is joined by flush
   and other manngers bug.
