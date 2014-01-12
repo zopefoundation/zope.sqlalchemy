@@ -5,9 +5,9 @@ python:
   - "3.2"
   - "3.3"
 before_install:
-  - sudo service postgresql stop
-  - echo "max_prepared_transactions = 10" | sudo tee -a /var/lib/postgresql/9.3/postgresql.conf
-  - sudo service postgresql start 9.3
+  - DATA_DIR=$(sudo -u postgres psql postgres -c "SHOW data_directory;" -q -t | head -1)
+  - 'echo "max_prepared_transactions = 10" | sudo tee -a "${DATA_DIR:1}/postgresql.conf"'
+  - sudo service postgresql restart
   - sudo -u postgres createdb --owner=$USER zope_sqlalchemy_tests
   - pip install -U setuptools
 install:
