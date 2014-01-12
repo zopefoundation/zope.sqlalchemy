@@ -13,3 +13,4 @@ install:
 script:
   - bin/test
   - bin/testpg
+  - bin/testpg2
