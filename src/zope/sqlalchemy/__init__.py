@@ -12,7 +12,5 @@
 #
 ##############################################################################
 
-__version__ = '0.7.5dev'
-
 from zope.sqlalchemy.datamanager import ZopeTransactionExtension, mark_changed, register
 invalidate = mark_changed
