@@ -1,7 +1,7 @@
 Changes
 =======
 
-0.7.5 (unreleased)
+0.7.5 (2014-06-17)
 ------------------
 
 * Ensure mapped objects are expired following a ``transaction.commit()`` when
