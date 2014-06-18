@@ -4,6 +4,10 @@ Changes
 0.7.5 (unreleased)
 ------------------
 
+* Ensure mapped objects are expired following a ``transaction.commit()`` when
+  no database commit was required.
+
+  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/8
 
 0.7.4 (2014-01-06)
 ------------------

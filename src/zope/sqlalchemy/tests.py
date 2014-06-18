@@ -666,6 +666,17 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             # KeepSession does not rollback on transaction abort
             session.rollback()
 
+    def testExpireAll(self):
+        session = Session()
+        session.add(User(id=1, firstname='udo', lastname='juergens'))
+        transaction.commit()
+
+        session = Session()
+        instance = session.query(User).get(1)
+        transaction.commit()  # No work, session.close()
+
+        self.assertEqual(sa.inspect(instance).expired, True)
+
 
 class RetryTests(unittest.TestCase):
 

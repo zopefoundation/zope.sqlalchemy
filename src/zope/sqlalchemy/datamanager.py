@@ -92,6 +92,9 @@ class SessionDataManager(object):
     def commit(self, trans):
         status = _SESSION_STATE[id(self.session)]
         if status is not STATUS_INVALIDATED:
+            session = self.session
+            if session.expire_on_commit:
+                session.expire_all()
             self._finish('no work')
 
     def tpc_vote(self, trans):
