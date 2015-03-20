@@ -4,6 +4,8 @@ Changes
 0.7.6 (unreleased)
 ------------------
 
+* Make version check in register compatible with prereleases.
+
 0.7.5 (2014-06-17)
 ------------------
 

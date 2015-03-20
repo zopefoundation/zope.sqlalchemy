@@ -265,7 +265,7 @@ def register(session, initial_state=STATUS_ACTIVE,
     """
 
     from sqlalchemy import __version__
-    assert tuple(int(x) for x in __version__.split(".")) >= (0, 7), \
+    assert tuple(int(x) for x in __version__.split(".")[:2]) >= (0, 7), \
         "SQLAlchemy version 0.7 or greater required to use register()"
 
     from sqlalchemy import event
