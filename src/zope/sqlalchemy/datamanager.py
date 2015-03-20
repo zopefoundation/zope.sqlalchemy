@@ -271,7 +271,7 @@ def register(session, initial_state=STATUS_ACTIVE,
     from sqlalchemy import event
 
     ext = ZopeTransactionExtension(
-        initial_state=initial_state,         
+        initial_state=initial_state,
         transaction_manager=transaction_manager,
         keep_session=keep_session,
     )
