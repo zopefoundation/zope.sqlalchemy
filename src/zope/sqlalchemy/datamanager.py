@@ -62,7 +62,13 @@ class SessionDataManager(object):
 
     def __init__(self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
-        self.tx = session.transaction._iterate_parents()[-1]
+
+        # Support both SQLAlchemy 1.0 and 1.1
+        # https://github.com/zopefoundation/zope.sqlalchemy/issues/15
+        _iterate_parents = getattr(session.transaction, "_iterate_self_and_parents", None) \
+                    or session.transaction._iterate_parents
+
+        self.tx = _iterate_parents()[-1]
         self.session = session
         transaction_manager.get().join(self)
         _SESSION_STATE[id(session)] = status
