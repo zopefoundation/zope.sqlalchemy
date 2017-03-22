@@ -37,7 +37,7 @@ setup(
     install_requires=[
       'setuptools',
       'SQLAlchemy>=0.5.1',
-      'transaction',
+      'transaction < 1.5',
       'zope.interface>=3.6.0',
       ],
     extras_require={'test': tests_require},
