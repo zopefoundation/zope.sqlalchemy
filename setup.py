@@ -5,7 +5,7 @@ tests_require = ['zope.testing']
 
 setup(
     name='zope.sqlalchemy',
-    version='0.7.8.dev0',
+    version='1.0.dev0',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
@@ -25,10 +25,8 @@ setup(
     "Framework :: Zope3",
     "Programming Language :: Python",
     "Programming Language :: Python :: 2",
-    "Programming Language :: Python :: 2.6",
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.2",
     "Programming Language :: Python :: 3.3",
     "License :: OSI Approved :: Zope Public License",
     "Topic :: Software Development :: Libraries :: Python Modules",
