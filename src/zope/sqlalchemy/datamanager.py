@@ -12,6 +12,8 @@
 #
 ##############################################################################
 
+from weakref import WeakKeyDictionary
+
 import transaction as zope_transaction
 from zope.interface import implementer
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
@@ -45,7 +47,7 @@ STATUS_INVALIDATED = STATUS_CHANGED  # BBB
 
 NO_SAVEPOINT_SUPPORT = set(['sqlite'])
 
-_SESSION_STATE = {}  # a mapping of id(session) -> status
+_SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
 
 
@@ -71,14 +73,14 @@ class SessionDataManager(object):
         self.tx = _iterate_parents()[-1]
         self.session = session
         transaction_manager.get().join(self)
-        _SESSION_STATE[id(session)] = status
+        _SESSION_STATE[session] = status
         self.state = 'init'
         self.keep_session = keep_session
 
     def _finish(self, final_state):
         assert self.tx is not None
         session = self.session
-        del _SESSION_STATE[id(self.session)]
+        del _SESSION_STATE[self.session]
         self.tx = self.session = None
         self.state = final_state
         # closing the session is the last thing we do. If it fails the
@@ -96,7 +98,7 @@ class SessionDataManager(object):
         self.session.flush()
 
     def commit(self, trans):
-        status = _SESSION_STATE[id(self.session)]
+        status = _SESSION_STATE[self.session]
         if status is not STATUS_INVALIDATED:
             session = self.session
             if session.expire_on_commit:
@@ -203,7 +205,7 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
     The ZopeTransactionExtesion SessionExtension can be used to ensure that this is
     called automatically after session write operations.
     """
-    if _SESSION_STATE.get(id(session), None) is None:
+    if _SESSION_STATE.get(session, None) is None:
         if session.twophase:
             DataManager = TwoPhaseSessionDataManager
         else:
@@ -214,10 +216,9 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
 def mark_changed(session, transaction_manager=zope_transaction.manager, keep_session=False):
     """Mark a session as needing to be committed.
     """
-    session_id = id(session)
-    assert _SESSION_STATE.get(session_id, None) is not STATUS_READONLY, "Session already registered as read only"
+    assert _SESSION_STATE.get(session, None) is not STATUS_READONLY, "Session already registered as read only"
     join_transaction(session, STATUS_CHANGED, transaction_manager, keep_session)
-    _SESSION_STATE[session_id] = STATUS_CHANGED
+    _SESSION_STATE[session] = STATUS_CHANGED
 
 
 class ZopeTransactionExtension(SessionExtension):
