@@ -43,7 +43,6 @@ def b(s):
         return s
 
 import os
-import pkg_resources
 import re
 import unittest
 import transaction
@@ -153,8 +152,6 @@ bound_metadata2 = sa.MetaData(engine2)
 
 test_one = sa.Table('test_one', bound_metadata1, sa.Column('id', sa.Integer, primary_key=True))
 test_two = sa.Table('test_two', bound_metadata2, sa.Column('id', sa.Integer, primary_key=True))
-
-transaction_version = pkg_resources.get_distribution('transaction').parsed_version
 
 
 class TestOne(SimpleModel):
@@ -340,17 +337,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertTrue(
             [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
             "Not joined transaction")
-        transaction.abort()
-        conn = Session().connection()
-        if transaction_version < pkg_resources.parse_version('1.6.0'):
-            self.assertTrue(
-                [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-                "Not joined transaction")
-        else:
-            self.assertEqual(
-                [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-                [],
-                "Not joined transaction")
 
     def testTransactionJoiningUsingRegister(self):
         transaction.abort()  # clean slate
@@ -364,17 +350,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertTrue(
             [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
             "Not joined transaction")
-        transaction.abort()
-        conn = EventSession().connection()
-        if transaction_version < pkg_resources.parse_version('1.6.0'):
-            self.assertTrue(
-                [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-                "Not joined transaction")
-        else:
-            self.assertEqual(
-                [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-                [],
-                "Not joined transaction")
 
     def testSavepoint(self):
         use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT

@@ -8,6 +8,8 @@ Changes
 
 - Add support for Python 3.4 up to 3.6.
 
+- Drop support for transaction < 1.6.0.
+
 
 0.7.7 (2016-06-23)
 ------------------
