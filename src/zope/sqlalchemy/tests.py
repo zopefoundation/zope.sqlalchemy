@@ -24,30 +24,12 @@
 # NOTE: The sqlite that ships with Mac OS X 10.4 is buggy. Install a newer version (3.5.6)
 #       and rebuild pysqlite2 against it.
 
-import sys
-
-PY3 = sys.version_info[0] == 3
-
-
-def u(s):
-    if PY3:
-        return s
-    else:
-        return s.decode('utf-8')
-
-
-def b(s):
-    if PY3:
-        return s.encode('utf-8')
-    else:
-        return s
-
 import os
 import re
-import unittest
-import transaction
 import threading
 import time
+import transaction
+import unittest
 
 from transaction._transaction import Status as ZopeStatus
 from transaction.interfaces import TransactionFailedError
@@ -710,7 +692,7 @@ class RetryTests(unittest.TestCase):
         self.assertTrue(len(s2.query(User).all()) == 1, "Users table should have one row")
         s1.query(User).delete()
         user = s2.query(User).get(1)
-        user.lastname = u('smith')
+        user.lastname = u'smith'
         tm1.commit()
         raised = False
         try:
