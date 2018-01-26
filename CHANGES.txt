@@ -8,7 +8,7 @@ Changes
 
 - Add support for Python 3.4 up to 3.6.
 
-- *Attention:* This versions currently does not support ``transaction >= 1.5``. (See https://github.com/zopefoundation/zope.sqlalchemy/issues/20)
+- Drop support for transaction < 1.6.0.
 
 
 0.7.7 (2016-06-23)

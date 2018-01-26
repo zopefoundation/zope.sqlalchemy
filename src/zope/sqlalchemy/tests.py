@@ -337,11 +337,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertTrue(
             [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
             "Not joined transaction")
-        transaction.abort()
-        conn = Session().connection()
-        self.assertTrue(
-            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-            "Not joined transaction")
 
     def testTransactionJoiningUsingRegister(self):
         transaction.abort()  # clean slate
@@ -352,11 +347,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = EventSession()
         session.add(User(id=1, firstname='udo', lastname='juergens'))
         t = transaction.get()
-        self.assertTrue(
-            [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
-            "Not joined transaction")
-        transaction.abort()
-        conn = EventSession().connection()
         self.assertTrue(
             [r for r in t._resources if isinstance(r, tx.SessionDataManager)],
             "Not joined transaction")
