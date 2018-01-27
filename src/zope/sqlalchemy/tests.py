@@ -245,7 +245,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         dummy = DummyDataManager(key='dummy.first')
         session = Session()
         mark_changed(session)
-        self.assertTrue(id(session) in zope.sqlalchemy.datamanager._SESSION_STATE)
+        self.assertTrue(session in zope.sqlalchemy.datamanager._SESSION_STATE)
 
     def testAbortBeforeCommit(self):
         # Simulate what happens in a conflict error
