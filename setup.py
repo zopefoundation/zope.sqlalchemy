@@ -18,9 +18,9 @@ setup(
     url='http://pypi.python.org/pypi/zope.sqlalchemy',
     description="Minimal Zope/SQLAlchemy transaction integration",
     long_description=(
-        open(os.path.join('src', 'zope', 'sqlalchemy', 'README.txt')).read() +
+        open(os.path.join('src', 'zope', 'sqlalchemy', 'README.rst')).read() +
         "\n\n" +
-        open('CHANGES.txt').read()),
+        open('CHANGES.rst').read()),
     license='ZPL 2.1',
     keywords='zope zope3 sqlalchemy',
     classifiers=[

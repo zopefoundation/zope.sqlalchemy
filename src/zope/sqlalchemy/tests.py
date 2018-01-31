@@ -783,7 +783,7 @@ def test_suite():
     suite.addTest(makeSuite(MultipleEngineTests))
     if TEST_DSN.startswith('postgres') or TEST_DSN.startswith('oracle'):
         suite.addTest(makeSuite(RetryTests))
-    suite.addTest(doctest.DocFileSuite('README.txt', optionflags=optionflags,
+    suite.addTest(doctest.DocFileSuite('README.rst', optionflags=optionflags,
                   checker=checker, tearDown=tearDownReadMe,
                   globs={'TEST_DSN': TEST_DSN, 'TEST_TWOPHASE': TEST_TWOPHASE}))
     return suite
