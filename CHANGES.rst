@@ -4,13 +4,15 @@ Changes
 1.0 (unreleased)
 ----------------
 
-- Drop support for Python 2.6, 3.2 and 3.3.
+* Add support for Python 3.4 up to 3.6.
 
-- Add support for Python 3.4 up to 3.6.
+* Support SQLAlchemy 1.2.
 
-- Drop support for transaction < 1.6.0.
+* Drop support for Python 2.6, 3.2 and 3.3.
 
-- Fix hazard that could cause SQLAlchemy session not to be committed when
+* Drop support for transaction < 1.6.0.
+
+* Fix hazard that could cause SQLAlchemy session not to be committed when
   transaction is committed in rare situations. See
   https://github.com/zopefoundation/zope.sqlalchemy/pull/23
 
