@@ -4,5 +4,6 @@ include *.txt
 include buildout.cfg
 include oracle.cfg
 include postgres.cfg
+include pysqlite.cfg
 include tox.ini
 recursive-include src *.rst
