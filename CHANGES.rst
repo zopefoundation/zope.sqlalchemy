@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.0 (unreleased)
+1.0 (2018-01-31)
 ----------------
 
 * Add support for Python 3.4 up to 3.6.
