@@ -230,5 +230,7 @@ which superseded the extension system as of SQLAlchemy 0.7.   Usage is similar:
 Development version
 ===================
 
-`GIT version <https+git://github.com/zopefoundation/zope.sqlalchemy#egg=zope.sqlalchemy>`_
+`GIT version`_
+
+.. _`GIT version` : <https+git://github.com/zopefoundation/zope.sqlalchemy#egg=zope.sqlalchemy>`
 
