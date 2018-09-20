@@ -32,7 +32,7 @@ this package and this README to make any sense.
 
 .. _SQLAlchemy: http://sqlalchemy.org/docs/
 
-.. _Zope transaction manager: http://www.zodb.org/zodbbook/transactions.html
+.. _Zope transaction manager: http://www.zodb.org/en/latest/#transactions
 
 Running the tests
 =================
