@@ -24,7 +24,7 @@ setup(
     license='ZPL 2.1',
     keywords='zope zope3 sqlalchemy',
     classifiers=[
-        "Framework :: Zope3",
+        "Framework :: Zope :: 3",
         "Framework :: Pyramid",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
