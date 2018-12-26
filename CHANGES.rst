@@ -4,7 +4,7 @@ Changes
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support to MySQL using pymysql.
 
 
 1.0 (2018-01-31)

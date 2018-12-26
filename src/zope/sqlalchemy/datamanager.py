@@ -39,6 +39,14 @@ except ImportError:
 else:
     _retryable_errors.append((cx_Oracle.DatabaseError, lambda e: e.args[0].code == 8177))
 
+# 1213: Deadlock found when trying to get lock; try restarting transaction
+try:
+    import pymysql
+except ImportError:
+    pass
+else:
+    _retryable_errors.append((pymysql.err.OperationalError, lambda e: e.args[0] == 1213))
+
 # The status of the session is stored on the connection info
 STATUS_ACTIVE = 'active'  # session joined to transaction, writes allowed.
 STATUS_CHANGED = 'changed'  # data has been written
