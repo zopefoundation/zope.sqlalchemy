@@ -7,3 +7,6 @@ include postgres.cfg
 include pysqlite.cfg
 include tox.ini
 recursive-include src *.rst
+
+# added by check_manifest.py
+include mysql.cfg
