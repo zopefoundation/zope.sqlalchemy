@@ -4,13 +4,13 @@ Changes
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+* Add support for Python 3.7
 
 
 1.1 (2019-01-03)
 ----------------
 
-- Add support to MySQL using pymysql.
+* Add support to MySQL using pymysql.
 
 
 1.0 (2018-01-31)
