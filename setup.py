@@ -15,7 +15,7 @@ setup(
     author='Laurence Rowe',
 
     author_email='laurence@lrowe.co.uk',
-    url='http://pypi.python.org/pypi/zope.sqlalchemy',
+    url='https://github.com/zopefoundation/zope.sqlalchemy',
     description="Minimal Zope/SQLAlchemy transaction integration",
     long_description=(
         open(os.path.join('src', 'zope', 'sqlalchemy', 'README.rst')).read() +
