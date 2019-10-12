@@ -20,7 +20,6 @@ from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
 from transaction._transaction import Status as ZopeStatus
 from sqlalchemy.orm.exc import ConcurrentModificationError
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm.session import SessionExtension
 from sqlalchemy.engine.base import Engine
 
 _retryable_errors = []
@@ -37,7 +36,9 @@ try:
 except ImportError:
     pass
 else:
-    _retryable_errors.append((cx_Oracle.DatabaseError, lambda e: e.args[0].code == 8177))
+    _retryable_errors.append(
+        (cx_Oracle.DatabaseError, lambda e: e.args[0].code == 8177)
+    )
 
 # 1213: Deadlock found when trying to get lock; try restarting transaction
 try:
@@ -45,15 +46,17 @@ try:
 except ImportError:
     pass
 else:
-    _retryable_errors.append((pymysql.err.OperationalError, lambda e: e.args[0] == 1213))
+    _retryable_errors.append(
+        (pymysql.err.OperationalError, lambda e: e.args[0] == 1213)
+    )
 
 # The status of the session is stored on the connection info
-STATUS_ACTIVE = 'active'  # session joined to transaction, writes allowed.
-STATUS_CHANGED = 'changed'  # data has been written
-STATUS_READONLY = 'readonly'  # session joined to transaction, no writes allowed.
+STATUS_ACTIVE = "active"  # session joined to transaction, writes allowed.
+STATUS_CHANGED = "changed"  # data has been written
+STATUS_READONLY = "readonly"  # session joined to transaction, no writes allowed.
 STATUS_INVALIDATED = STATUS_CHANGED  # BBB
 
-NO_SAVEPOINT_SUPPORT = set(['sqlite'])
+NO_SAVEPOINT_SUPPORT = set(["sqlite"])
 
 _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
@@ -62,6 +65,7 @@ _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 #
 # The two variants of the DataManager.
 #
+
 
 @implementer(ISavepointDataManager)
 class SessionDataManager(object):
@@ -75,14 +79,16 @@ class SessionDataManager(object):
 
         # Support both SQLAlchemy 1.0 and 1.1
         # https://github.com/zopefoundation/zope.sqlalchemy/issues/15
-        _iterate_parents = getattr(session.transaction, "_iterate_self_and_parents", None) \
-                    or session.transaction._iterate_parents
+        _iterate_parents = (
+            getattr(session.transaction, "_iterate_self_and_parents", None)
+            or session.transaction._iterate_parents
+        )
 
         self.tx = _iterate_parents()[-1]
         self.session = session
         transaction_manager.get().join(self)
         _SESSION_STATE[session] = status
-        self.state = 'init'
+        self.state = "init"
         self.keep_session = keep_session
 
     def _finish(self, final_state):
@@ -100,7 +106,7 @@ class SessionDataManager(object):
 
     def abort(self, trans):
         if self.tx is not None:  # there may have been no work to do
-            self._finish('aborted')
+            self._finish("aborted")
 
     def tpc_begin(self, trans):
         self.session.flush()
@@ -111,19 +117,19 @@ class SessionDataManager(object):
             session = self.session
             if session.expire_on_commit:
                 session.expire_all()
-            self._finish('no work')
+            self._finish("no work")
 
     def tpc_vote(self, trans):
         # for a one phase data manager commit last in tpc_vote
         if self.tx is not None:  # there may have been no work to do
             self.tx.commit()
-            self._finish('committed')
+            self._finish("committed")
 
     def tpc_finish(self, trans):
         pass
 
     def tpc_abort(self, trans):
-        assert self.state is not 'committed'
+        assert self.state is not "committed"
 
     def sortKey(self):
         # Try to sort last, so that we vote last - we may commit in tpc_vote(),
@@ -141,11 +147,12 @@ class SessionDataManager(object):
         # support savepoints but Postgres is whitelisted independent of its
         # version. Possibly additional version information should be taken
         # into account (ajung)
-        if set(engine.url.drivername
-               for engine in self.session.transaction._connections.keys()
-               if isinstance(engine, Engine)
-               ).intersection(NO_SAVEPOINT_SUPPORT):
-            raise AttributeError('savepoint')
+        if set(
+            engine.url.drivername
+            for engine in self.session.transaction._connections.keys()
+            if isinstance(engine, Engine)
+        ).intersection(NO_SAVEPOINT_SUPPORT):
+            raise AttributeError("savepoint")
         return self._savepoint
 
     def _savepoint(self):
@@ -167,20 +174,21 @@ class SessionDataManager(object):
 class TwoPhaseSessionDataManager(SessionDataManager):
     """Two phase variant.
     """
+
     def tpc_vote(self, trans):
         if self.tx is not None:  # there may have been no work to do
             self.tx.prepare()
-            self.state = 'voted'
+            self.state = "voted"
 
     def tpc_finish(self, trans):
         if self.tx is not None:
             self.tx.commit()
-            self._finish('committed')
+            self._finish("committed")
 
     def tpc_abort(self, trans):
         if self.tx is not None:  # we may not have voted, and been aborted already
             self.tx.rollback()
-            self._finish('aborted commit')
+            self._finish("aborted commit")
 
     def sortKey(self):
         # Sort normally
@@ -189,7 +197,6 @@ class TwoPhaseSessionDataManager(SessionDataManager):
 
 @implementer(IDataManagerSavepoint)
 class SessionSavepoint:
-
     def __init__(self, session):
         self.session = session
         self.transaction = session.begin_nested()
@@ -199,7 +206,12 @@ class SessionSavepoint:
         self.transaction.rollback()
 
 
-def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager, keep_session=False):
+def join_transaction(
+    session,
+    initial_state=STATUS_ACTIVE,
+    transaction_manager=zope_transaction.manager,
+    keep_session=False,
+):
     """Join a session to a transaction using the appropriate datamanager.
 
     It is safe to call this multiple times, if the session is already joined
@@ -210,7 +222,7 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
     If using the default initial status of STATUS_ACTIVE, you must ensure that
     mark_changed(session) is called when data is written to the database.
 
-    The ZopeTransactionExtesion SessionExtension can be used to ensure that this is
+    The ZopeTransactionEvents can be used to ensure that this is
     called automatically after session write operations.
     """
     if _SESSION_STATE.get(session, None) is None:
@@ -218,35 +230,49 @@ def join_transaction(session, initial_state=STATUS_ACTIVE, transaction_manager=z
             DataManager = TwoPhaseSessionDataManager
         else:
             DataManager = SessionDataManager
-        DataManager(session, initial_state, transaction_manager, keep_session=keep_session)
+        DataManager(
+            session, initial_state, transaction_manager, keep_session=keep_session
+        )
 
 
-def mark_changed(session, transaction_manager=zope_transaction.manager, keep_session=False):
+def mark_changed(
+    session, transaction_manager=zope_transaction.manager, keep_session=False
+):
     """Mark a session as needing to be committed.
     """
-    assert _SESSION_STATE.get(session, None) is not STATUS_READONLY, "Session already registered as read only"
+    assert (
+        _SESSION_STATE.get(session, None) is not STATUS_READONLY
+    ), "Session already registered as read only"
     join_transaction(session, STATUS_CHANGED, transaction_manager, keep_session)
     _SESSION_STATE[session] = STATUS_CHANGED
 
 
-class ZopeTransactionExtension(SessionExtension):
+class ZopeTransactionEvents(object):
     """Record that a flush has occurred on a session's connection. This allows
     the DataManager to rollback rather than commit on read only transactions.
     """
 
-    def __init__(self, initial_state=STATUS_ACTIVE, transaction_manager=zope_transaction.manager, keep_session=False):
-        if initial_state == 'invalidated':
+    def __init__(
+        self,
+        initial_state=STATUS_ACTIVE,
+        transaction_manager=zope_transaction.manager,
+        keep_session=False,
+    ):
+        if initial_state == "invalidated":
             initial_state = STATUS_CHANGED  # BBB
-        SessionExtension.__init__(self)
         self.initial_state = initial_state
         self.transaction_manager = transaction_manager
         self.keep_session = keep_session
 
     def after_begin(self, session, transaction, connection):
-        join_transaction(session, self.initial_state, self.transaction_manager, self.keep_session)
+        join_transaction(
+            session, self.initial_state, self.transaction_manager, self.keep_session
+        )
 
     def after_attach(self, session, instance):
-        join_transaction(session, self.initial_state, self.transaction_manager, self.keep_session)
+        join_transaction(
+            session, self.initial_state, self.transaction_manager, self.keep_session
+        )
 
     def after_flush(self, session, flush_context):
         mark_changed(session, self.transaction_manager, self.keep_session)
@@ -258,13 +284,18 @@ class ZopeTransactionExtension(SessionExtension):
         mark_changed(session, self.transaction_manager, self.keep_session)
 
     def before_commit(self, session):
-        assert session.transaction.nested or \
-            self.transaction_manager.get().status == ZopeStatus.COMMITTING, \
-            "Transaction must be committed using the transaction manager"
+        assert (
+            session.transaction.nested
+            or self.transaction_manager.get().status == ZopeStatus.COMMITTING
+        ), "Transaction must be committed using the transaction manager"
 
 
-def register(session, initial_state=STATUS_ACTIVE,
-             transaction_manager=zope_transaction.manager, keep_session=False):
+def register(
+    session,
+    initial_state=STATUS_ACTIVE,
+    transaction_manager=zope_transaction.manager,
+    keep_session=False,
+):
     """Register ZopeTransaction listener events on the
     given Session or Session factory/class.
 
@@ -280,12 +311,15 @@ def register(session, initial_state=STATUS_ACTIVE,
     """
 
     from sqlalchemy import __version__
-    assert tuple(int(x) for x in __version__.split(".")[:2]) >= (0, 7), \
-        "SQLAlchemy version 0.7 or greater required to use register()"
+
+    assert tuple(int(x) for x in __version__.split(".")[:2]) >= (
+        0,
+        7,
+    ), "SQLAlchemy version 0.7 or greater required to use register()"
 
     from sqlalchemy import event
 
-    ext = ZopeTransactionExtension(
+    ext = ZopeTransactionEvents(
         initial_state=initial_state,
         transaction_manager=transaction_manager,
         keep_session=keep_session,

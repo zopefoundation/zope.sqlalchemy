@@ -9,3 +9,5 @@ dist/
 downloads/
 eggs/
 parts/
+include/
+lib/

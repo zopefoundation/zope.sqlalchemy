@@ -66,7 +66,7 @@ First the necessary imports.
     >>> from sqlalchemy import *
     >>> from sqlalchemy.ext.declarative import declarative_base
     >>> from sqlalchemy.orm import scoped_session, sessionmaker, relation
-    >>> from zope.sqlalchemy import ZopeTransactionExtension
+    >>> from zope.sqlalchemy import register
     >>> import transaction
 
 Now to define the mapper classes.
@@ -91,16 +91,17 @@ recent version of sqlite/pysqlite is required. 3.4.0 seems to be sufficient.
 
 Now to create the session itself. As zope is a threaded web server we must use
 scoped sessions. Zope and SQLAlchemy sessions are tied together by using the
-ZopeTransactionExtension from this package.
+register
 
     >>> Session = scoped_session(sessionmaker(bind=engine,
-    ... twophase=TEST_TWOPHASE, extension=ZopeTransactionExtension()))
+    ... twophase=TEST_TWOPHASE))
 
 Call the scoped session factory to retrieve a session. You may call this as
 many times as you like within a transaction and you will always retrieve the
 same session. At present there are no users in the database.
 
     >>> session = Session()
+    >>> register(session)
     >>> session.query(User).all()
     []
 
@@ -163,11 +164,11 @@ to the DB.
     'ben'
     >>> transaction.abort()
 
-If this is a problem you may tell the extension to place the session in the
-'changed' state initially.
+If this is a problem you may register the events and tell them to place the
+session in the 'changed' state initially.
 
     >>> Session.remove()
-    >>> Session.configure(extension=ZopeTransactionExtension('changed'))
+    >>> register(Session, 'changed')
     >>> session = Session()
     >>> conn = session.connection()
     >>> conn.execute(users.update(users.c.name=='ben'), name='bob')
@@ -190,13 +191,12 @@ after a commit. You can tell by trying to access an object after committing:
     Traceback (most recent call last):
     DetachedInstanceError: Instance <User at ...> is not bound to a Session; attribute refresh operation cannot proceed...
 
-To support cases where a session needs to last longer than a transaction
-(useful in test suites) you can specify to keep a session when creating the
-transaction extension:
+To support cases where a session needs to last longer than a transaction (useful
+in test suites) you can specify to keep a session when registering the events:
 
     >>> Session = scoped_session(sessionmaker(bind=engine,
-    ... twophase=TEST_TWOPHASE, extension=ZopeTransactionExtension(keep_session=True)))
-
+    ... twophase=TEST_TWOPHASE))
+    >>> register(Session, keep_session=True)
     >>> session = Session()
     >>> bob = session.query(User).all()[0]
     >>> bob.name = 'bobby'
@@ -207,24 +207,6 @@ transaction extension:
 The session must then be closed manually:
 
     >>> session.close()
-
-Registration Using SQLAlchemy Events
-====================================
-
-The zope.sqlalchemy.register() function performs the same function as the
-ZopeTransactionExtension, except makes use of the newer SQLAlchemy event system
-which superseded the extension system as of SQLAlchemy 0.7.   Usage is similar:
-
-    >>> from zope.sqlalchemy import register
-    >>> Session = scoped_session(sessionmaker(bind=engine,
-    ... twophase=TEST_TWOPHASE))
-    >>> register(Session, keep_session=True)
-    >>> session = Session()
-    >>> jack = User(id=2, name='jack')
-    >>> session.add(jack)
-    >>> transaction.commit()
-    >>> engine.execute("select name from test_users where id=2").scalar()
-    u'jack'
 
 
 Development version

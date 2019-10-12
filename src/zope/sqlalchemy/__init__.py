@@ -12,5 +12,6 @@
 #
 ##############################################################################
 
-from zope.sqlalchemy.datamanager import ZopeTransactionExtension, mark_changed, register
+from zope.sqlalchemy.datamanager import ZopeTransactionEvents, mark_changed, register
+
 invalidate = mark_changed
