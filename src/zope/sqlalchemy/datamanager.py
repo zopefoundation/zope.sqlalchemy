@@ -56,7 +56,7 @@ STATUS_CHANGED = "changed"  # data has been written
 STATUS_READONLY = "readonly"  # session joined to transaction, no writes allowed.
 STATUS_INVALIDATED = STATUS_CHANGED  # BBB
 
-NO_SAVEPOINT_SUPPORT = set(["sqlite"])
+NO_SAVEPOINT_SUPPORT = {"sqlite"}
 
 _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
@@ -309,14 +309,6 @@ def register(
     passed, including specificity to its subclass as well as its identity.
 
     """
-
-    from sqlalchemy import __version__
-
-    assert tuple(int(x) for x in __version__.split(".")[:2]) >= (
-        0,
-        7,
-    ), "SQLAlchemy version 0.7 or greater required to use register()"
-
     from sqlalchemy import event
 
     ext = ZopeTransactionEvents(
