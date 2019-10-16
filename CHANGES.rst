@@ -7,7 +7,8 @@ Changes
 * Add support for Python 3.7
 
 * Fix deprecation warnings for the event system. We already used it in general
-  but still leveraged the old extenion mechanism in some places. Fixes #31.
+  but still leveraged the old extenion mechanism in some places.
+  (`#31 <https://github.com/zopefoundation/zope.sqlalchemy/issues/31>`_)
 
   To make things clearer we renamed the ZopeTransactionExtension class
   to ZopeTransactionEvents. Existing code using the 'register' version stays
@@ -32,16 +33,16 @@ Changes
 * Drop support for transaction < 1.6.0.
 
 * Fix hazard that could cause SQLAlchemy session not to be committed when
-  transaction is committed in rare situations. See
-  https://github.com/zopefoundation/zope.sqlalchemy/pull/23
+  transaction is committed in rare situations.
+  (`#23 <https://github.com/zopefoundation/zope.sqlalchemy/pull/23>`_)
 
 
 0.7.7 (2016-06-23)
 ------------------
 
 * Support SQLAlchemy 1.1.
+  (`#15 <https://github.com/zopefoundation/zope.sqlalchemy/issues/15>`_)
 
-  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/15
 
 0.7.6 (2015-03-20)
 ------------------
@@ -53,29 +54,26 @@ Changes
 
 * Ensure mapped objects are expired following a ``transaction.commit()`` when
   no database commit was required.
+  (`#8 <https://github.com/zopefoundation/zope.sqlalchemy/issues/8>`_)
 
-  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/8
 
 0.7.4 (2014-01-06)
 ------------------
 
 * Allow ``session.commit()`` on nested transactions to facilitate integration
   of existing code that might not use ``transaction.savepoint()``.
-
-  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/1
+  (`#1 <https://github.com/zopefoundation/zope.sqlalchemy/issues/1>`_)
 
 * Add a new function zope.sqlalchemy.register(), which replaces the
   direct use of ZopeTransactionExtension to make use
   of the newer SQLAlchemy event system to establish instrumentation on
   the given Session instance/class/factory.   Requires at least
   SQLAlchemy 0.7.
-
-  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/4
+  (`#4 <https://github.com/zopefoundation/zope.sqlalchemy/issues/4>`_)
 
 * Fix `keep_session=True` doesn't work when a transaction is joined by flush
   and other manngers bug.
-
-  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/5
+  (`#5 <https://github.com/zopefoundation/zope.sqlalchemy/issues/5>`_)
 
 
 0.7.3 (2013-09-25)
@@ -84,8 +82,7 @@ Changes
 * Prevent the ``Session`` object from getting into a "wedged" state if joining
   a transaction fails. With thread scoped sessions that are reused this can cause
   persistent errors requiring a server restart.
-
-  See: https://github.com/zopefoundation/zope.sqlalchemy/issues/2
+  (`#2 <https://github.com/zopefoundation/zope.sqlalchemy/issues/2>`_)
 
 0.7.2 (2013-02-19)
 ------------------
