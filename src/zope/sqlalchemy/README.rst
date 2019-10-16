@@ -212,7 +212,4 @@ The session must then be closed manually:
 Development version
 ===================
 
-`GIT version`_
-
-.. _`GIT version` : <https+git://github.com/zopefoundation/zope.sqlalchemy#egg=zope.sqlalchemy>`
-
+`GIT version <https://github.com/zopefoundation/zope.sqlalchemy>`_
