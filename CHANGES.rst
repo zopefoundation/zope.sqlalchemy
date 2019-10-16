@@ -6,6 +6,13 @@ Changes
 
 * Add support for Python 3.7
 
+* Fix deprecation warnings for the event system. We already used it in general
+  but still leveraged the old extenion mechanism in some places. Fixes #31.
+
+  To make things clearer we renamed the ZopeTransactionExtension class
+  to ZopeTransactionEvents. Existing code using the 'register' version stays
+  compatible.
+
 
 1.1 (2019-01-03)
 ----------------
