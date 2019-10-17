@@ -5,7 +5,7 @@ tests_require = ['zope.testing']
 
 setup(
     name='zope.sqlalchemy',
-    version='1.2.dev0',
+    version='1.2',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
