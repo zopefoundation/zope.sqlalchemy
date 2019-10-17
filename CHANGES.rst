@@ -4,7 +4,9 @@ Changes
 1.2 (unreleased)
 ----------------
 
-* Add support for Python 3.7
+* Drop support for Python 3.4.
+
+* Add support for Python 3.7 and 3.8.
 
 * Fix deprecation warnings for the event system. We already used it in general
   but still leveraged the old extenion mechanism in some places.
