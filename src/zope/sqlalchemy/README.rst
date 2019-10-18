@@ -57,6 +57,31 @@ setting the TEST_TWOPHASE variable to a non empty string. e.g:
 
 $ TEST_DSN=postgres://test:test@localhost/test TEST_TWOPHASE=True bin/test
 
+Wrap SQLAlchemy sessions
+========================
+
+.. code-block:: python
+
+    from zope.sqlalchemy import register
+    from sqlalchemy.orm import sessionmaker, scoped_session
+
+    prefix = "db."
+    url = "postgres://postgres@db/postgres"
+    settings = {
+        "db.pool_timeout": 3
+    }
+
+    engine = sqlalchemy.engine_from_config(settings, url=url, prefix=prefix)
+
+    DBSession = scoped_session(sessionmaker(bind=engine))
+    register(DBSession)
+
+    session = DBSession()
+    result = session.execute("DELETE FROM objects WHERE id=:id", {"id": 2})
+    row = result.fetchone()
+    session.commit()
+
+
 Example
 =======
 
