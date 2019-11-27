@@ -323,3 +323,4 @@ def register(
     event.listen(session, "after_bulk_update", ext.after_bulk_update)
     event.listen(session, "after_bulk_delete", ext.after_bulk_delete)
     event.listen(session, "before_commit", ext.before_commit)
+    return ext
