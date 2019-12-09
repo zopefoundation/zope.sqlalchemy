@@ -10,6 +10,8 @@ Changes
 1.2 (2019-10-17)
 ----------------
 
+**Breaking Changes**
+
 * Drop support for Python 3.4.
 
 * Add support for Python 3.7 and 3.8.
@@ -21,6 +23,26 @@ Changes
   To make things clearer we renamed the ``ZopeTransactionExtension`` class
   to ``ZopeTransactionEvents``. Existing code using the 'register' version
   stays compatible.
+
+**Upgrade from 1.1**
+
+Your old code like this:
+
+.. code-block:: python
+
+    from zope.sqlalchemy import ZopeTransactionExtension
+
+    DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension(), **options))
+
+becomes:
+
+.. code-block:: python
+
+    from zope.sqlalchemy import register
+
+    DBSession = scoped_session(sessionmaker(**options))
+    register(DBSession)
+
 
 
 1.1 (2019-01-03)
