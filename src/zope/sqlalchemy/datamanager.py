@@ -308,6 +308,9 @@ def register(
     Event listening will be specific to the scope of the type of argument
     passed, including specificity to its subclass as well as its identity.
 
+    It returns the instance of ZopeTransactionEvents those methods where used
+    to register the event listeners.
+
     """
     from sqlalchemy import event
 
@@ -323,3 +326,4 @@ def register(
     event.listen(session, "after_bulk_update", ext.after_bulk_update)
     event.listen(session, "after_bulk_delete", ext.after_bulk_delete)
     event.listen(session, "before_commit", ext.before_commit)
+    return ext
