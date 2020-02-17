@@ -129,7 +129,7 @@ class SessionDataManager(object):
         pass
 
     def tpc_abort(self, trans):
-        assert self.state is not "committed"
+        assert self.state != "committed"
 
     def sortKey(self):
         # Try to sort last, so that we vote last - we may commit in tpc_vote(),
