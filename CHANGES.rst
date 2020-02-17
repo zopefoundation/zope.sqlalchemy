@@ -4,7 +4,10 @@ Changes
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+* ``.datamanager.register()`` now returns the ``ZopeTransactionEvents``
+  instance which was used to register the events. This allows to change its
+  parameters afterwards.
+  (`#40 <https://github.com/zopefoundation/zope.sqlalchemy/pull/40>`_)
 
 
 1.2 (2019-10-17)

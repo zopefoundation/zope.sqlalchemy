@@ -102,6 +102,7 @@ same session. At present there are no users in the database.
 
     >>> session = Session()
     >>> register(session)
+    <zope.sqlalchemy.datamanager.ZopeTransactionEvents object at ...>
     >>> session.query(User).all()
     []
 
@@ -169,6 +170,7 @@ session in the 'changed' state initially.
 
     >>> Session.remove()
     >>> register(Session, 'changed')
+    <zope.sqlalchemy.datamanager.ZopeTransactionEvents object at ...>
     >>> session = Session()
     >>> conn = session.connection()
     >>> conn.execute(users.update(users.c.name=='ben'), name='bob')
@@ -197,6 +199,7 @@ in test suites) you can specify to keep a session when registering the events:
     >>> Session = scoped_session(sessionmaker(bind=engine,
     ... twophase=TEST_TWOPHASE))
     >>> register(Session, keep_session=True)
+    <zope.sqlalchemy.datamanager.ZopeTransactionEvents object at ...>
     >>> session = Session()
     >>> bob = session.query(User).all()[0]
     >>> bob.name = 'bobby'
