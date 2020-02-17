@@ -57,8 +57,40 @@ setting the TEST_TWOPHASE variable to a non empty string. e.g:
 
 $ TEST_DSN=postgres://test:test@localhost/test TEST_TWOPHASE=True bin/test
 
-Example
-=======
+Usage in short
+==============
+
+The integration between Zope transactions and the SQLAlchemy event system is
+done using the ``register()`` function on the session factory class.
+
+.. code-block:: python
+
+    from zope.sqlalchemy import register
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker, scoped_session
+
+    engine = sqlalchemy.create_engine("postgresql://scott:tiger@localhost/test")
+
+    DBSession = scoped_session(sessionmaker(bind=engine))
+    register(DBSession)
+
+Instantiated sessions commits and rollbacks will now be integrated with Zope
+transactions.
+
+.. code-block:: python
+
+    import transaction
+
+    session = DBSession()
+
+    result = session.execute("DELETE FROM objects WHERE id=:id", {"id": 2})
+    row = result.fetchone()
+
+    transaction.commit()
+
+
+Full Example
+============
 
 This example is lifted directly from the SQLAlchemy declarative documentation.
 First the necessary imports.
