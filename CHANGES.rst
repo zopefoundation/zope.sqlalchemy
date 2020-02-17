@@ -9,6 +9,8 @@ Changes
   parameters afterwards.
   (`#40 <https://github.com/zopefoundation/zope.sqlalchemy/pull/40>`_)
 
+* Add preliminary support for Python 3.9a3.
+
 
 1.2 (2019-10-17)
 ----------------
