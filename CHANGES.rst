@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.3 (unreleased)
+1.3 (2020-02-17)
 ----------------
 
 * ``.datamanager.register()`` now returns the ``ZopeTransactionEvents``
