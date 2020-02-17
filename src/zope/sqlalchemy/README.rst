@@ -86,7 +86,7 @@ Now to define the mapper classes.
 Create an engine and setup the tables. Note that for this example to work a
 recent version of sqlite/pysqlite is required. 3.4.0 seems to be sufficient.
 
-    >>> engine = create_engine(TEST_DSN, convert_unicode=True)
+    >>> engine = create_engine(TEST_DSN)
     >>> Base.metadata.create_all(engine)
 
 Now to create the session itself. As zope is a threaded web server we must use

@@ -5,6 +5,7 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
+  - "3.9-dev"
 services:
   - postgresql
 before_install:
@@ -14,10 +15,9 @@ before_install:
   - sudo cat "$CONFIG_FILE"
   - sudo service postgresql restart
   - sudo -u postgres createdb --owner=$USER zope_sqlalchemy_tests
-  - pip install -U setuptools
+  - pip install -U setuptools zc.buildout
 install:
-  - python bootstrap.py
-  - bin/buildout -c postgres.cfg
+  - buildout -c postgres.cfg
 script:
   - bin/test
   - bin/testpg
