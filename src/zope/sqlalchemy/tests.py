@@ -26,6 +26,7 @@
 
 import os
 import re
+import sys
 import threading
 import time
 import transaction
@@ -42,6 +43,8 @@ from zope.testing.renormalizing import RENormalizing
 
 TEST_TWOPHASE = bool(os.environ.get("TEST_TWOPHASE"))
 TEST_DSN = os.environ.get("TEST_DSN", "sqlite:///:memory:")
+SQLITE_NO_SAVEPOINT = TEST_DSN.startswith("sqlite:") and sys.version_info < (3, 6)
+SQLITE_NO_SAVEPOINT_MSG = "SQLite savepoints unsupported by this Python version."
 
 
 class SimpleModel(object):
@@ -64,28 +67,6 @@ class Skill(SimpleModel):
 engine = sa.create_engine(TEST_DSN)
 engine2 = sa.create_engine(TEST_DSN)
 
-# See https://code.google.com/p/pysqlite-static-env/
-HAS_PATCHED_PYSQLITE = False
-if engine.url.drivername == "sqlite":
-    try:
-        from pysqlite2.dbapi2 import Connection
-    except ImportError:
-        pass
-    else:
-        if hasattr(Connection, "operation_needs_transaction_callback"):
-            HAS_PATCHED_PYSQLITE = True
-
-if HAS_PATCHED_PYSQLITE:
-    from sqlalchemy import event
-    from zope.sqlalchemy.datamanager import NO_SAVEPOINT_SUPPORT
-
-    NO_SAVEPOINT_SUPPORT.remove("sqlite")
-
-    @event.listens_for(engine, "connect")
-    def connect(dbapi_connection, connection_record):
-        dbapi_connection.operation_needs_transaction_callback = lambda x: True
-
-
 Session = orm.scoped_session(orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
 tx.register(Session)
 
@@ -98,6 +79,8 @@ tx.register(EventSession)
 KeepSession = orm.scoped_session(orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
 tx.register(KeepSession, keep_session=True)
 
+DisableSavepointsSession = orm.scoped_session(orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
+tx.register(DisableSavepointsSession, disable_savepoints=True)
 
 metadata = sa.MetaData()  # best to use unbound metadata
 
@@ -336,18 +319,14 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             "Not joined transaction",
         )
 
+    @unittest.skipIf(SQLITE_NO_SAVEPOINT, SQLITE_NO_SAVEPOINT_MSG)
     def testSavepoint(self):
-        use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         t = transaction.get()
         session = Session()
         query = session.query(User)
         self.assertFalse(query.all(), "Users table should be empty")
 
         s0 = t.savepoint(optimistic=True)  # this should always work
-
-        if not use_savepoint:
-            self.assertRaises(TypeError, t.savepoint)
-            return  # sqlite databases do not support savepoints
 
         s1 = t.savepoint()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
@@ -365,11 +344,18 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         s1.rollback()
         self.assertFalse(query.all(), "Users table should be empty")
 
-    def testRollbackAttributes(self):
-        use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
-        if not use_savepoint:
-            return  # sqlite databases do not support savepoints
+    def testDisableSavepoints(self):
+        t = transaction.get()
+        session = DisableSavepointsSession()
+        query = session.query(User)
+        self.assertFalse(query.all(), "Users table should be empty")
 
+        s0 = t.savepoint(optimistic=True)  # this should always work
+
+        self.assertRaises(TypeError, t.savepoint)
+
+    @unittest.skipIf(SQLITE_NO_SAVEPOINT, SQLITE_NO_SAVEPOINT_MSG)
+    def testRollbackAttributes(self):
         t = transaction.get()
         session = Session()
         query = session.query(User)
@@ -393,7 +379,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def testCommit(self):
         session = Session()
 
-        use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         query = session.query(User)
         rows = query.all()
         self.assertEqual(len(rows), 0)
@@ -436,9 +421,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         results = engine.connect().execute(test_users.select())
         self.assertEqual(len(results.fetchall()), 2)
 
+    @unittest.skipIf(SQLITE_NO_SAVEPOINT, SQLITE_NO_SAVEPOINT_MSG)
     def testCommitWithSavepoint(self):
-        if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
-            return
         session = Session()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.add(User(id=2, firstname="heino", lastname="n/a"))
@@ -460,10 +444,9 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         results = engine.connect().execute(test_users.select())
         self.assertEqual(len(results.fetchall()), 1)
 
+    @unittest.skipIf(SQLITE_NO_SAVEPOINT, SQLITE_NO_SAVEPOINT_MSG)
     def testNestedSessionCommitAllowed(self):
         # Existing code might use nested transactions
-        if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
-            return
         session = Session()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.begin_nested()

@@ -56,8 +56,6 @@ STATUS_CHANGED = "changed"  # data has been written
 STATUS_READONLY = "readonly"  # session joined to transaction, no writes allowed.
 STATUS_INVALIDATED = STATUS_CHANGED  # BBB
 
-NO_SAVEPOINT_SUPPORT = {"sqlite"}
-
 _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
 
@@ -74,7 +72,7 @@ class SessionDataManager(object):
     One phase variant.
     """
 
-    def __init__(self, session, status, transaction_manager, keep_session=False):
+    def __init__(self, session, status, transaction_manager, keep_session=False, disable_savepoints=False):
         self.transaction_manager = transaction_manager
 
         # Support both SQLAlchemy 1.0 and 1.1
@@ -90,6 +88,7 @@ class SessionDataManager(object):
         _SESSION_STATE[session] = status
         self.state = "init"
         self.keep_session = keep_session
+        self.disable_savepoints = disable_savepoints
 
     def _finish(self, final_state):
         assert self.tx is not None
@@ -147,11 +146,7 @@ class SessionDataManager(object):
         # support savepoints but Postgres is whitelisted independent of its
         # version. Possibly additional version information should be taken
         # into account (ajung)
-        if set(
-            engine.url.drivername
-            for engine in self.session.transaction._connections.keys()
-            if isinstance(engine, Engine)
-        ).intersection(NO_SAVEPOINT_SUPPORT):
+        if self.disable_savepoints:
             raise AttributeError("savepoint")
         return self._savepoint
 
@@ -211,6 +206,7 @@ def join_transaction(
     initial_state=STATUS_ACTIVE,
     transaction_manager=zope_transaction.manager,
     keep_session=False,
+    disable_savepoints=False,
 ):
     """Join a session to a transaction using the appropriate datamanager.
 
@@ -231,19 +227,19 @@ def join_transaction(
         else:
             DataManager = SessionDataManager
         DataManager(
-            session, initial_state, transaction_manager, keep_session=keep_session
+            session, initial_state, transaction_manager, keep_session=keep_session, disable_savepoints=disable_savepoints,
         )
 
 
 def mark_changed(
-    session, transaction_manager=zope_transaction.manager, keep_session=False
+    session, transaction_manager=zope_transaction.manager, keep_session=False, disable_savepoints=False,
 ):
     """Mark a session as needing to be committed.
     """
     assert (
         _SESSION_STATE.get(session, None) is not STATUS_READONLY
     ), "Session already registered as read only"
-    join_transaction(session, STATUS_CHANGED, transaction_manager, keep_session)
+    join_transaction(session, STATUS_CHANGED, transaction_manager, keep_session, disable_savepoints)
     _SESSION_STATE[session] = STATUS_CHANGED
 
 
@@ -257,31 +253,33 @@ class ZopeTransactionEvents(object):
         initial_state=STATUS_ACTIVE,
         transaction_manager=zope_transaction.manager,
         keep_session=False,
+        disable_savepoints=False,
     ):
         if initial_state == "invalidated":
             initial_state = STATUS_CHANGED  # BBB
         self.initial_state = initial_state
         self.transaction_manager = transaction_manager
         self.keep_session = keep_session
+        self.disable_savepoints = disable_savepoints
 
     def after_begin(self, session, transaction, connection):
         join_transaction(
-            session, self.initial_state, self.transaction_manager, self.keep_session
+            session, self.initial_state, self.transaction_manager, self.keep_session, self.disable_savepoints
         )
 
     def after_attach(self, session, instance):
         join_transaction(
-            session, self.initial_state, self.transaction_manager, self.keep_session
+            session, self.initial_state, self.transaction_manager, self.keep_session, self.disable_savepoints
         )
 
     def after_flush(self, session, flush_context):
-        mark_changed(session, self.transaction_manager, self.keep_session)
+        mark_changed(session, self.transaction_manager, self.keep_session, self.disable_savepoints)
 
     def after_bulk_update(self, session, query, query_context, result):
-        mark_changed(session, self.transaction_manager, self.keep_session)
+        mark_changed(session, self.transaction_manager, self.keep_session, self.disable_savepoints)
 
     def after_bulk_delete(self, session, query, query_context, result):
-        mark_changed(session, self.transaction_manager, self.keep_session)
+        mark_changed(session, self.transaction_manager, self.keep_session, self.disable_savepoints)
 
     def before_commit(self, session):
         assert (
@@ -295,6 +293,7 @@ def register(
     initial_state=STATUS_ACTIVE,
     transaction_manager=zope_transaction.manager,
     keep_session=False,
+    disable_savepoints=False,
 ):
     """Register ZopeTransaction listener events on the
     given Session or Session factory/class.
@@ -318,6 +317,7 @@ def register(
         initial_state=initial_state,
         transaction_manager=transaction_manager,
         keep_session=keep_session,
+        disable_savepoints=disable_savepoints,
     )
 
     event.listen(session, "after_begin", ext.after_begin)
