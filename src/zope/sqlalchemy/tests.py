@@ -289,7 +289,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         d = row1.asDict()
         self.assertEqual(d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
-        # bypass the session machinary
+        # bypass the session machinery
         stmt = sql.select(test_users.columns).order_by("id")
         conn = session.connection()
         results = conn.execute(stmt)
@@ -432,7 +432,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         d = row1.asDict()
         self.assertEqual(d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
-        # bypass the session (and transaction) machinary
+        # bypass the session (and transaction) machinery
         results = engine.connect().execute(test_users.select())
         self.assertEqual(len(results.fetchall()), 2)
 
@@ -456,7 +456,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.flush()
         transaction.commit()
 
-        # bypass the session machinary
+        # bypass the session machinery
         results = engine.connect().execute(test_users.select())
         self.assertEqual(len(results.fetchall()), 1)
 
