@@ -289,6 +289,19 @@ class ZopeTransactionEvents(object):
             or self.transaction_manager.get().status == ZopeStatus.COMMITTING
         ), "Transaction must be committed using the transaction manager"
 
+    def mark_changed(self, session):
+        """Developer interface to `mark_changed` that preserves the extension's
+        active configuration.
+        """
+        mark_changed(session, self.transaction_manager, self.keep_session)
+
+    def join_transaction(self, session):
+        """Developer interface to `join_transaction` that preserves the
+        extension's active configuration.
+        """
+        join_transaction(
+            session, self.initial_state, self.transaction_manager, self.keep_session
+        )
 
 def register(
     session,
