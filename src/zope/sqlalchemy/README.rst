@@ -227,6 +227,7 @@ You can also use a configured extension to preserve this argument:
 
     >>> sessionExtension = register(session, keep_session=True)
     >>> sessionExtension.mark_changed(session)
+    >>> transaction.commit()
 
 
 Long-lasting session scopes
