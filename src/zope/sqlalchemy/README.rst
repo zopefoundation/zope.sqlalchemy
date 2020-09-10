@@ -223,10 +223,10 @@ If you intend for `keep_session` to be True, you can specify it explicitly:
     >>> mark_changed(session, keep_session=True)
     >>> transaction.commit()
 
-You can also use the configured extension to preserve this argument
+You can also use a configured extension to preserve this argument:
 
-    >>> sessionExtension = register(Session, keep_session=True)
-    >>> sessionExtension.mark_changed()
+    >>> sessionExtension = register(session, keep_session=True)
+    >>> sessionExtension.mark_changed(session)
 
 
 Long-lasting session scopes
