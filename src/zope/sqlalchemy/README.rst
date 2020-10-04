@@ -22,17 +22,17 @@ framework.
 You need to understand `SQLAlchemy`_ and the `Zope transaction manager`_ for
 this package and this README to make any sense.
 
-.. _repoze.tm2: http://docs.repoze.org/tm2/
+.. _repoze.tm2: https://repozetm2.readthedocs.io/en/latest/
 
-.. _pyramid_tm: https://docs.pylonsproject.org/projects/pyramid_tm/dev/
+.. _pyramid_tm: https://docs.pylonsproject.org/projects/pyramid_tm/en/latest/
 
-.. _Pyramid: http://pylonsproject.org/
+.. _Pyramid: https://pylonsproject.org/
 
-.. _Turbogears 2: http://turbogears.org/
+.. _Turbogears 2: https://turbogears.org/
 
-.. _SQLAlchemy: http://sqlalchemy.org/docs/
+.. _SQLAlchemy: https://sqlalchemy.org/docs/
 
-.. _Zope transaction manager: http://www.zodb.org/en/latest/#transactions
+.. _Zope transaction manager: https://www.zodb.org/en/latest/#transactions
 
 Running the tests
 =================
