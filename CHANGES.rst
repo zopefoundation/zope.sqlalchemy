@@ -4,7 +4,7 @@ Changes
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Drop support for Python 3.5.
 
 
 1.3 (2020-02-17)
