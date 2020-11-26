@@ -213,6 +213,23 @@ session in the 'changed' state initially.
     'bob'
     >>> transaction.abort()
 
+The `mark_changed` function accepts a kwarg for `keep_session` which defaults
+to `False` and is unaware of the registered extensions `keep_session`
+configuration.
+
+If you intend for `keep_session` to be True, you can specify it explicitly:
+
+    >>> from zope.sqlalchemy import mark_changed
+    >>> mark_changed(session, keep_session=True)
+    >>> transaction.commit()
+
+You can also use a configured extension to preserve this argument:
+
+    >>> sessionExtension = register(session, keep_session=True)
+    >>> sessionExtension.mark_changed(session)
+    >>> transaction.commit()
+
+
 Long-lasting session scopes
 ---------------------------
 
