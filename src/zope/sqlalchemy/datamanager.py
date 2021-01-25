@@ -30,7 +30,8 @@ try:
 except ImportError:
     pass
 else:
-    _retryable_errors.append((psycopg2.extensions.TransactionRollbackError, None))
+    _retryable_errors.append(
+        (psycopg2.extensions.TransactionRollbackError, None))
 
 # ORA-08177: can't serialize access for this transaction
 try:
@@ -55,7 +56,8 @@ else:
 # The status of the session is stored on the connection info
 STATUS_ACTIVE = "active"  # session joined to transaction, writes allowed.
 STATUS_CHANGED = "changed"  # data has been written
-STATUS_READONLY = "readonly"  # session joined to transaction, no writes allowed.
+# session joined to transaction, no writes allowed.
+STATUS_READONLY = "readonly"
 STATUS_INVALIDATED = STATUS_CHANGED  # BBB
 
 NO_SAVEPOINT_SUPPORT = {"sqlite"}
@@ -71,12 +73,15 @@ _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 
 @implementer(ISavepointDataManager)
 class SessionDataManager(object):
-    """Integrate a top level sqlalchemy session transaction into a zope transaction
+    """Integrate a top level sqlalchemy session transaction into a
+
+    zope transaction.
 
     One phase variant.
     """
 
-    def __init__(self, session, status, transaction_manager, keep_session=False):
+    def __init__(
+            self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
 
         # Support both SQLAlchemy 1.0 and 1.1
@@ -141,9 +146,10 @@ class SessionDataManager(object):
 
     @property
     def savepoint(self):
-        """Savepoints are only supported when all connections support subtransactions
-        """
+        """Savepoints are only supported when all connections support
 
+        subtransactions.
+        """
         # ATT: the following check is weak since the savepoint capability
         # of a RDBMS also depends on its version. E.g. Postgres 7.X does not
         # support savepoints but Postgres is whitelisted independent of its
@@ -188,7 +194,8 @@ class TwoPhaseSessionDataManager(SessionDataManager):
             self._finish("committed")
 
     def tpc_abort(self, trans):
-        if self.tx is not None:  # we may not have voted, and been aborted already
+        # we may not have voted, and been aborted already
+        if self.tx is not None:
             self.tx.rollback()
             self._finish("aborted commit")
 
@@ -204,7 +211,7 @@ class SessionSavepoint:
         self.transaction = session.begin_nested()
 
     def rollback(self):
-        # no need to check validity, sqlalchemy should raise an exception. I think.
+        # no need to check validity, sqlalchemy should raise an exception.
         self.transaction.rollback()
 
 
@@ -219,7 +226,8 @@ def join_transaction(
     It is safe to call this multiple times, if the session is already joined
     then it just returns.
 
-    `initial_state` is either STATUS_ACTIVE, STATUS_INVALIDATED or STATUS_READONLY
+    `initial_state` is either STATUS_ACTIVE, STATUS_INVALIDATED or
+    STATUS_READONLY
 
     If using the default initial status of STATUS_ACTIVE, you must ensure that
     mark_changed(session) is called when data is written to the database.
@@ -233,7 +241,8 @@ def join_transaction(
         else:
             DataManager = SessionDataManager
         DataManager(
-            session, initial_state, transaction_manager, keep_session=keep_session
+            session, initial_state, transaction_manager,
+            keep_session=keep_session
         )
 
 
@@ -245,7 +254,8 @@ def mark_changed(
     assert (
         _SESSION_STATE.get(session, None) is not STATUS_READONLY
     ), "Session already registered as read only"
-    join_transaction(session, STATUS_CHANGED, transaction_manager, keep_session)
+    join_transaction(session, STATUS_CHANGED,
+                     transaction_manager, keep_session)
     _SESSION_STATE[session] = STATUS_CHANGED
 
 
@@ -268,12 +278,14 @@ class ZopeTransactionEvents(object):
 
     def after_begin(self, session, transaction, connection):
         join_transaction(
-            session, self.initial_state, self.transaction_manager, self.keep_session
+            session, self.initial_state, self.transaction_manager,
+            self.keep_session
         )
 
     def after_attach(self, session, instance):
         join_transaction(
-            session, self.initial_state, self.transaction_manager, self.keep_session
+            session, self.initial_state, self.transaction_manager,
+            self.keep_session
         )
 
     def after_flush(self, session, flush_context):
@@ -302,8 +314,10 @@ class ZopeTransactionEvents(object):
         extension's active configuration.
         """
         join_transaction(
-            session, self.initial_state, self.transaction_manager, self.keep_session
+            session, self.initial_state, self.transaction_manager,
+            self.keep_session
         )
+
 
 def register(
     session,
