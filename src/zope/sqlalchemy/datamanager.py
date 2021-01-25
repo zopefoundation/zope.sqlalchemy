@@ -15,12 +15,14 @@
 from weakref import WeakKeyDictionary
 
 import transaction as zope_transaction
-from zope.interface import implementer
-from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
-from transaction._transaction import Status as ZopeStatus
-from sqlalchemy.orm.exc import ConcurrentModificationError
-from sqlalchemy.exc import DBAPIError
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.exc import DBAPIError
+from sqlalchemy.orm.exc import ConcurrentModificationError
+from transaction._transaction import Status as ZopeStatus
+from transaction.interfaces import IDataManagerSavepoint
+from transaction.interfaces import ISavepointDataManager
+from zope.interface import implementer
+
 
 _retryable_errors = []
 try:

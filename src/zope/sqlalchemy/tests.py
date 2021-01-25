@@ -28,17 +28,20 @@ import os
 import re
 import threading
 import time
-import transaction
 import unittest
 
+import sqlalchemy as sa
+import transaction
+from sqlalchemy import exc
+from sqlalchemy import orm
+from sqlalchemy import sql
 from transaction._transaction import Status as ZopeStatus
 from transaction.interfaces import TransactionFailedError
+from zope.testing.renormalizing import RENormalizing
 
-import sqlalchemy as sa
-from sqlalchemy import orm, sql, exc
 from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
-from zope.testing.renormalizing import RENormalizing
+
 
 TEST_TWOPHASE = bool(os.environ.get("TEST_TWOPHASE"))
 TEST_DSN = os.environ.get("TEST_DSN", "sqlite:///:memory:")
@@ -77,6 +80,7 @@ if engine.url.drivername == "sqlite":
 
 if HAS_PATCHED_PYSQLITE:
     from sqlalchemy import event
+
     from zope.sqlalchemy.datamanager import NO_SAVEPOINT_SUPPORT
 
     NO_SAVEPOINT_SUPPORT.remove("sqlite")
@@ -786,8 +790,9 @@ def tearDownReadMe(test):
 
 
 def test_suite():
-    from unittest import TestSuite, makeSuite
     import doctest
+    from unittest import TestSuite
+    from unittest import makeSuite
 
     optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     checker = RENormalizing(
