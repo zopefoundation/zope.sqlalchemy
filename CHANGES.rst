@@ -4,8 +4,6 @@ Changes
 1.4 (unreleased)
 ----------------
 
-- Drop support for Python 3.5.
-
 - Add ``mark_changed`` and ``join_transaction`` methods to
   ``ZopeTransactionEvents``.
   (`#46 <https://github.com/zopefoundation/zope.sqlalchemy/issues/46>`_)
