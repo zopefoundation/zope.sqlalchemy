@@ -29,7 +29,6 @@ jobs:
     steps:
     - name: "Try PostgreSQL"
       run: |
-        postgres --version
         psql --version
         psql
     - uses: actions/checkout@v2

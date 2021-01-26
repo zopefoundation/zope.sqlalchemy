@@ -42,7 +42,6 @@ additional-rules = [
 steps-before-checkout = [
     "- name: \"Try PostgreSQL\"",
     "  run: |",
-    "    postgres --version",
     "    psql --version",
     "    psql",
     ]
