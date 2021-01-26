@@ -10,6 +10,7 @@ recursive-include src *.py
 recursive-include src *.rst
 recursive-include src *.txt
 recursive-include src *.zcml
+include github_actions.cfg
 include mysql.cfg
 include oracle.cfg
 include postgres.cfg

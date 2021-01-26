@@ -31,6 +31,7 @@ testenv-additional = [
 
 [manifest]
 additional-rules = [
+    "include github_actions.cfg",
     "include mysql.cfg",
     "include oracle.cfg",
     "include postgres.cfg",
@@ -45,9 +46,9 @@ services = [
     "postgres:",
     "  image: postgres",
     "  env:",
-    "    POSTGRES_USER: root",
+    "    POSTGRES_USER: postgres",
+    "    POSTGRES_PASSWORD: postgres",
     "    POSTGRES_DB: zope_sqlalchemy_tests",
-    "    POSTGRES_HOST_AUTH_METHOD: ident",
     "  # Set health checks to wait until postgres has started",
     "  options: >-",
     "    --health-cmd pg_isready",
