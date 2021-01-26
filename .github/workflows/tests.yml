@@ -11,6 +11,21 @@ on:
 
 jobs:
   build:
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: root
+          POSTGRES_DB: zope_sqlalchemy_tests
+          POSTGRES_HOST_AUTH_METHOD: ident
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     strategy:
       matrix:
         config:
@@ -44,6 +59,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install tox
+        echo ::set-output name=GH_USER::$(whoami)
     - name: Test
       run: tox -e ${{ matrix.config[1] }}
     - name: Coverage
