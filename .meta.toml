@@ -59,6 +59,9 @@ services = [
 steps-before-checkout = [
     "- name: \"Configure PostgreSQL\"",
     "  run: |",
+    "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
+    "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf.sample'",
     "    docker exec ${{ job.services.postgres.id }} sh -c 'echo \"max_prepared_transactions=10\" >> /var/lib/postgresql/data/postgresql.conf'",
+    "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
     "    docker kill --signal=SIGHUP ${{ job.services.postgres.id }}",
     ]
