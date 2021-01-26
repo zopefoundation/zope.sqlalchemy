@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "a8bafcbd51db1c9028304d8c17e7f34ac563e9ad"
+commit-id = "8311ae3788ee0ebffe83a977ac65e4c9eac66c77"
 
 [python]
 with-appveyor = false
@@ -55,6 +55,7 @@ services = [
     "    --health-interval 10s",
     "    --health-timeout 5s",
     "    --health-retries 5",
+    "    --max_prepared_transactions=110",
     "  ports:",
     "    - 5432:5432",
     ]
