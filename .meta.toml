@@ -39,9 +39,6 @@ additional-rules = [
     ]
 
 [github-actions]
-additional-install = [
-    "echo ::set-output name=GH_USER::$(whoami)",
-    ]
 services = [
     "postgres:",
     "  image: postgres:13",
@@ -51,11 +48,17 @@ services = [
     "    POSTGRES_DB: zope_sqlalchemy_tests",
     "  # Set health checks to wait until postgres has started",
     "  options: >-",
+    "    --mount type=tmpfs,destination=/var/lib/postgresql/data",
     "    --health-cmd pg_isready",
     "    --health-interval 10s",
     "    --health-timeout 5s",
     "    --health-retries 5",
-    "    --entrypoint \"/usr/lib/postgresql/13/postgres -c max_prepared_transactions=10\"",
     "  ports:",
     "    - 5432:5432",
+    ]
+steps-before-checkout = [
+    "- name: \"Configure PostgreSQL\"",
+    "  run: |",
+    "    docker exec ${{ job.services.postgres.id }} sh -c 'echo \"max_prepared_transactions=10\" >> /var/lib/postgresql/data/postgresql.conf'",
+    "    docker kill --signal=SIGHUP ${{ job.services.postgres.id }}",
     ]
