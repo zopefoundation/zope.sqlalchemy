@@ -16,7 +16,8 @@ fail-under = 70
 
 [tox]
 testenv-commands-pre = [
-    "{envbindir}/buildout -nc {toxinidir}/postgres.cfg buildout:directory={envdir} buildout:develop={toxinidir}",
+    "sh -c 'if [ '{env:CI:}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "sh -c 'if [ '{env:CI:}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
     ]
 testenv-commands = [
     "{envbindir}/test {posargs:-cv}",
