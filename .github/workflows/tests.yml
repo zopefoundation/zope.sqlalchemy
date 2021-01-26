@@ -11,6 +11,22 @@ on:
 
 jobs:
   build:
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: zope_sqlalchemy_tests
+        # Set health checks to wait until postgres has started
+        options: >-
+          --mount type=tmpfs,destination=/var/lib/postgresql/data
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     strategy:
       matrix:
         config:
@@ -27,10 +43,11 @@ jobs:
     runs-on: ubuntu-latest
     name: ${{ matrix.config[1] }}
     steps:
-    - name: "Try PostgreSQL"
+    - name: "Configure PostgreSQL"
       run: |
-        psql --version
-        psql
+        docker exec ${{ job.services.postgres.id }} sh -c 'echo "max_prepared_transactions=10" >> /var/lib/postgresql/data/postgresql.conf'
+        docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'
+        echo "postgres" | psql -h localhost -U postgres -W -d zope_sqlalchemy_tests -c "SELECT pg_reload_conf();"
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
