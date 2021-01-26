@@ -39,28 +39,10 @@ additional-rules = [
     ]
 
 [github-actions]
-services = [
-    "postgres:",
-    "  image: postgres:13",
-    "  env:",
-    "    POSTGRES_USER: postgres",
-    "    POSTGRES_PASSWORD: postgres",
-    "    POSTGRES_DB: zope_sqlalchemy_tests",
-    "  # Set health checks to wait until postgres has started",
-    "  options: >-",
-    "    --mount type=tmpfs,destination=/var/lib/postgresql/data",
-    "    --health-cmd pg_isready",
-    "    --health-interval 10s",
-    "    --health-timeout 5s",
-    "    --health-retries 5",
-    "  ports:",
-    "    - 5432:5432",
-    ]
 steps-before-checkout = [
-    "- name: \"Configure PostgreSQL\"",
+    "- name: \"Try PostgreSQL\"",
     "  run: |",
-    "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
-    "    docker exec ${{ job.services.postgres.id }} sh -c 'echo \"max_prepared_transactions=10\" >> /var/lib/postgresql/data/postgresql.conf'",
-    "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
-    "    docker exec ${{ job.services.postgres.id }} echo \"postgres\" | /usr/lib/postgresql/13/bin/psql -U postgres -W -d zope_sqlalchemy_tests -c \"SELECT pg_reload_conf();\"",
+    "    postgres --version",
+    "    psql --version",
+    "    psql",
     ]
