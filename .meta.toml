@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "8311ae3788ee0ebffe83a977ac65e4c9eac66c77"
+commit-id = "ad77aecf5ba6666f77cd8476db91a888cc105ff6"
 
 [python]
 with-appveyor = false
@@ -60,7 +60,6 @@ steps-before-checkout = [
     "- name: \"Configure PostgreSQL\"",
     "  run: |",
     "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
-    "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf.sample'",
     "    docker exec ${{ job.services.postgres.id }} sh -c 'echo \"max_prepared_transactions=10\" >> /var/lib/postgresql/data/postgresql.conf'",
     "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
     "    docker kill --signal=SIGHUP ${{ job.services.postgres.id }}",
