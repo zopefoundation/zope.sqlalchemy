@@ -62,5 +62,5 @@ steps-before-checkout = [
     "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
     "    docker exec ${{ job.services.postgres.id }} sh -c 'echo \"max_prepared_transactions=10\" >> /var/lib/postgresql/data/postgresql.conf'",
     "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
-    "    docker restart ${{ job.services.postgres.id }}",
+    "    docker exec ${{ job.services.postgres.id }} echo \"postgres\" | /usr/lib/postgresql/13/bin/psql -U postgres -W -d zope_sqlalchemy_tests -c \"SELECT pg_reload_conf();\"",
     ]
