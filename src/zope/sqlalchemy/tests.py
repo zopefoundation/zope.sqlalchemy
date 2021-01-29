@@ -761,7 +761,7 @@ class RetryTests(unittest.TestCase):
         thread = threading.Thread(target=target)
         thread.start()
         try:
-            s2.query(User).with_lockmode("update").get(1)
+            s2.query(User).with_for_update().get(1)
         except exc.DBAPIError as e:
             # This error wraps the underlying DBAPI module error, some of which
             # are retryable
