@@ -31,10 +31,10 @@ jobs:
       run: |
         sudo mkdir -p /usr/local/pgsql/data
         sudo chown postgres /usr/local/pgsql/data
-        sudo -u postgres -c '/usr/lib/postgresql/13/bin/initdb -D /usr/local/pgsql/data'
-        sudo -u postgres -c '/usr/lib/postgresql/13/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'
-        sudo -u postgres -c '/usr/lib/postgresql/13/bin/createdb test'
-        sudo -u postgres -c '/usr/lib/postgresql/13/bin/psql test'
+        sudo -u postgres '/usr/lib/postgresql/13/bin/initdb -D /usr/local/pgsql/data'
+        sudo -u postgres '/usr/lib/postgresql/13/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'
+        sudo -u postgres '/usr/lib/postgresql/13/bin/createdb test'
+        sudo -u postgres '/usr/lib/postgresql/13/bin/psql test'
         sudo su - postgres -c 'echo "max_prepared_transactions=10" >> /var/lib/postgresql/data/postgresql.conf'
         sudo su - postgres -c 'cat /var/lib/postgresql/data/postgresql.conf'
         echo "postgres" | psql -h localhost -U postgres -W -d zope_sqlalchemy_tests -c "SELECT pg_reload_conf();"
