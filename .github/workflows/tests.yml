@@ -29,7 +29,7 @@ jobs:
     steps:
     - name: "Configure PostgreSQL"
       run: |
-
+        sudo ls -al /usr/lib/postgresql/13/bin
         sudo su - postgres -c 'pg_config '
         sudo su - postgres -c 'psql -l'
 
