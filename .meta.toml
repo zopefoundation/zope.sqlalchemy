@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "ad77aecf5ba6666f77cd8476db91a888cc105ff6"
+commit-id = "ae6fbae62663edb6a8b62d2dbdfe0589f64b8844"
 
 [python]
 with-appveyor = false
@@ -27,6 +27,8 @@ testenv-commands = [
 testenv-additional = [
     "passenv =",
     "    CI",
+    "allowlist_externals =",
+    "    sh",
     ]
 
 [manifest]
@@ -39,27 +41,15 @@ additional-rules = [
     ]
 
 [github-actions]
-services = [
-    "postgres:",
-    "  image: postgres:13",
-    "  env:",
-    "    POSTGRES_USER: postgres",
-    "    POSTGRES_PASSWORD: postgres",
-    "    POSTGRES_DB: zope_sqlalchemy_tests",
-    "  # Set health checks to wait until postgres has started",
-    "  options: >-",
-    "    --mount type=tmpfs,destination=/var/lib/postgresql/data",
-    "    --health-cmd pg_isready",
-    "    --health-interval 10s",
-    "    --health-timeout 5s",
-    "    --health-retries 5",
-    "  ports:",
-    "    - 5432:5432",
-    ]
 steps-before-checkout = [
     "- name: \"Configure PostgreSQL\"",
     "  run: |",
-    "    docker exec ${{ job.services.postgres.id }} sh -c 'echo \"max_prepared_transactions=10\" >> /var/lib/postgresql/data/postgresql.conf'",
-    "    docker exec ${{ job.services.postgres.id }} sh -c 'cat /var/lib/postgresql/data/postgresql.conf'",
-    "    echo \"postgres\" | psql -h localhost -U postgres -W -d zope_sqlalchemy_tests -c \"SELECT pg_reload_conf();\"",
+    "    sudo mkdir -p /usr/local/pgsql/data",
+    "    sudo chown postgres /usr/local/pgsql/data",
+    "    sudo su - postgres -c '/usr/lib/postgresql/13/bin/initdb -D /usr/local/pgsql/data'",
+    "    sudo su - postgres -c 'echo \"max_prepared_transactions=10\" >> /usr/local/pgsql/data/postgresql.conf'",
+    "    sudo su - postgres -c 'cat /usr/local/pgsql/data/postgresql.conf'",
+    "    sudo su - postgres -c '/usr/lib/postgresql/13/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'",
+    "    sudo su - postgres -c '/usr/lib/postgresql/13/bin/createdb zope_sqlalchemy_tests'",
+    "    sudo su - postgres -c '/usr/lib/postgresql/13/bin/psql -l'",
     ]
