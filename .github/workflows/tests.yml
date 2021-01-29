@@ -29,8 +29,8 @@ jobs:
     steps:
     - name: "Configure PostgreSQL"
       run: |
-        ls /bin/
-        ls /usr/bin/
+
+        sudo su - postgres -c 'pg_config '
         sudo su - postgres -c 'psql -l'
 
         sudo su - postgres -c 'echo "max_prepared_transactions=10" >> /var/lib/postgresql/data/postgresql.conf'
