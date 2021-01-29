@@ -29,8 +29,8 @@ jobs:
     steps:
     - name: "Configure PostgreSQL"
       run: |
-        echo "systemctl status postgres"
-        echo "systemctl start postgres"
+        systemctl status postgres
+        systemctl start postgres
         sh -c 'echo "max_prepared_transactions=10" >> /var/lib/postgresql/data/postgresql.conf'
         sh -c 'cat /var/lib/postgresql/data/postgresql.conf'
         echo "postgres" | psql -h localhost -U postgres -W -d zope_sqlalchemy_tests -c "SELECT pg_reload_conf();"
