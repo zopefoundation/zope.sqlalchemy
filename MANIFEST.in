@@ -1,12 +1,17 @@
-include *.py
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/zope-product
 include *.rst
 include *.txt
 include buildout.cfg
+include tox.ini
+
+recursive-include src *.pt
+recursive-include src *.py
+recursive-include src *.rst
+recursive-include src *.txt
+recursive-include src *.zcml
+include github_actions.cfg
+include mysql.cfg
 include oracle.cfg
 include postgres.cfg
 include pysqlite.cfg
-include tox.ini
-recursive-include src *.rst
-
-# added by check_manifest.py
-include mysql.cfg

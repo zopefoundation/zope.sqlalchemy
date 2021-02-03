@@ -12,33 +12,36 @@
 #
 ##############################################################################
 
-# Much inspiration from z3c.sqlalchemy/trunk/src/z3c/sqlalchemy/tests/testSQLAlchemy.py
+# Inspiration from z3c.sqlalchemy/src/z3c/sqlalchemy/tests/testSQLAlchemy.py
 #
-# You may want to run the tests with your database. To do so set the environment variable
-# TEST_DSN to the connection url. e.g.:
+# You may want to run the tests with your database. To do so set the
+# environment variable TEST_DSN to the connection url. e.g.:
 # export TEST_DSN=postgres://plone:plone@localhost/test
 # export TEST_DSN=mssql://plone:plone@/test?dsn=mydsn
 #
 # To test in twophase commit mode export TEST_TWOPHASE=True
 #
-# NOTE: The sqlite that ships with Mac OS X 10.4 is buggy. Install a newer version (3.5.6)
-#       and rebuild pysqlite2 against it.
+# NOTE: The sqlite that ships with Mac OS X 10.4 is buggy.
+#       Install a newer version (3.5.6) and rebuild pysqlite2 against it.
 
 import os
 import re
 import threading
 import time
-import transaction
 import unittest
 
+import sqlalchemy as sa
+import transaction
+from sqlalchemy import exc
+from sqlalchemy import orm
+from sqlalchemy import sql
 from transaction._transaction import Status as ZopeStatus
 from transaction.interfaces import TransactionFailedError
+from zope.testing.renormalizing import RENormalizing
 
-import sqlalchemy as sa
-from sqlalchemy import orm, sql, exc
 from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
-from zope.testing.renormalizing import RENormalizing
+
 
 TEST_TWOPHASE = bool(os.environ.get("TEST_TWOPHASE"))
 TEST_DSN = os.environ.get("TEST_DSN", "sqlite:///:memory:")
@@ -50,7 +53,8 @@ class SimpleModel(object):
             setattr(self, k, v)
 
     def asDict(self):
-        return dict((k, v) for k, v in self.__dict__.items() if not k.startswith("_"))
+        return dict((k, v) for k, v in self.__dict__.items()
+                    if not k.startswith("_"))
 
 
 class User(SimpleModel):
@@ -77,6 +81,7 @@ if engine.url.drivername == "sqlite":
 
 if HAS_PATCHED_PYSQLITE:
     from sqlalchemy import event
+
     from zope.sqlalchemy.datamanager import NO_SAVEPOINT_SUPPORT
 
     NO_SAVEPOINT_SUPPORT.remove("sqlite")
@@ -86,16 +91,19 @@ if HAS_PATCHED_PYSQLITE:
         dbapi_connection.operation_needs_transaction_callback = lambda x: True
 
 
-Session = orm.scoped_session(orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
+Session = orm.scoped_session(orm.sessionmaker(
+    bind=engine, twophase=TEST_TWOPHASE))
 tx.register(Session)
 
 UnboundSession = orm.scoped_session(orm.sessionmaker(twophase=TEST_TWOPHASE))
 tx.register(UnboundSession)
 
-EventSession = orm.scoped_session(orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
+EventSession = orm.scoped_session(
+    orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
 tx.register(EventSession)
 
-KeepSession = orm.scoped_session(orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
+KeepSession = orm.scoped_session(
+    orm.sessionmaker(bind=engine, twophase=TEST_TWOPHASE))
 tx.register(KeepSession, keep_session=True)
 
 
@@ -106,7 +114,8 @@ test_users = sa.Table(
     "test_users",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
-    sa.Column("firstname", sa.VARCHAR(255)),  # mssql cannot do equality on a text type
+    # mssql cannot do equality on a text type
+    sa.Column("firstname", sa.VARCHAR(255)),
     sa.Column("lastname", sa.VARCHAR(255)),
 )
 
@@ -148,7 +157,9 @@ def setup_mappers():
         properties={
             "skills": orm.relation(
                 Skill,
-                primaryjoin=test_users.columns["id"] == test_skills.columns["user_id"],
+                primaryjoin=(
+                    test_users.columns["id"] == test_skills.columns["user_id"]
+                ),
             )
         },
     )
@@ -221,25 +232,25 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def testMarkUnknownSession(self):
         import zope.sqlalchemy.datamanager
 
-        dummy = DummyDataManager(key="dummy.first")
+        DummyDataManager(key="dummy.first")
         session = Session()
         mark_changed(session)
         self.assertTrue(session in zope.sqlalchemy.datamanager._SESSION_STATE)
 
     def testAbortBeforeCommit(self):
         # Simulate what happens in a conflict error
-        dummy = DummyDataManager(key="dummy.first")
+        DummyDataManager(key="dummy.first")
         session = Session()
         conn = session.connection()
         mark_changed(session)
         try:
             # Thus we could fail in commit
             transaction.commit()
-        except:
-            # But abort must succed (and actually rollback the base connection)
+        except:  # noqa: E722 do not use bare 'except'
+            # But abort must succeed (and rollback the base connection)
             transaction.abort()
             pass
-        # Or the next transaction the next transaction will not be able to start!
+        # Or the next transaction will not be able to start!
         transaction.begin()
         session = Session()
         conn = session.connection()
@@ -255,17 +266,18 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.begin()
         session = Session()
         conn = session.connection()
-        # At least PostgresSQL requires a rollback after invalid SQL is executed
+        # At least PostgresSQL requires a rollback after invalid SQL is
+        # executed
         self.assertRaises(Exception, conn.execute, "BAD SQL SYNTAX")
         mark_changed(session)
         try:
             # Thus we could fail in commit
             transaction.commit()
-        except:
+        except:  # noqa: E722 do not use bare 'except'
             # But abort must succed (and actually rollback the base connection)
             transaction.abort()
             pass
-        # Or the next transaction the next transaction will not be able to start!
+        # Or the next transaction will not be able to start!
         transaction.begin()
         session = Session()
         conn = session.connection()
@@ -287,7 +299,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         row1 = rows[0]
         d = row1.asDict()
-        self.assertEqual(d, {"firstname": "udo", "lastname": "juergens", "id": 1})
+        self.assertEqual(
+            d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
         # bypass the session machinery
         stmt = sql.select(test_users.columns).order_by("id")
@@ -337,13 +350,13 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         )
 
     def testSavepoint(self):
-        use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
+        use_savepoint = engine.url.drivername not in tx.NO_SAVEPOINT_SUPPORT
         t = transaction.get()
         session = Session()
         query = session.query(User)
         self.assertFalse(query.all(), "Users table should be empty")
 
-        s0 = t.savepoint(optimistic=True)  # this should always work
+        t.savepoint(optimistic=True)  # this should always work
 
         if not use_savepoint:
             self.assertRaises(TypeError, t.savepoint)
@@ -352,21 +365,24 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         s1 = t.savepoint()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.flush()
-        self.assertTrue(len(query.all()) == 1, "Users table should have one row")
+        self.assertTrue(len(query.all()) == 1,
+                        "Users table should have one row")
 
         s2 = t.savepoint()
         session.add(User(id=2, firstname="heino", lastname="n/a"))
         session.flush()
-        self.assertTrue(len(query.all()) == 2, "Users table should have two rows")
+        self.assertTrue(len(query.all()) == 2,
+                        "Users table should have two rows")
 
         s2.rollback()
-        self.assertTrue(len(query.all()) == 1, "Users table should have one row")
+        self.assertTrue(len(query.all()) == 1,
+                        "Users table should have one row")
 
         s1.rollback()
         self.assertFalse(query.all(), "Users table should be empty")
 
     def testRollbackAttributes(self):
-        use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
+        use_savepoint = engine.url.drivername not in tx.NO_SAVEPOINT_SUPPORT
         if not use_savepoint:
             return  # sqlite databases do not support savepoints
 
@@ -375,7 +391,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         query = session.query(User)
         self.assertFalse(query.all(), "Users table should be empty")
 
-        s1 = t.savepoint()
+        t.savepoint()
         user = User(id=1, firstname="udo", lastname="juergens")
         session.add(user)
         session.flush()
@@ -393,7 +409,6 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def testCommit(self):
         session = Session()
 
-        use_savepoint = not engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT
         query = session.query(User)
         rows = query.all()
         self.assertEqual(len(rows), 0)
@@ -422,7 +437,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         rows = query.order_by(User.id).all()
         row1 = rows[0]
         d = row1.asDict()
-        self.assertEqual(d, {"firstname": "udo", "lastname": "juergens", "id": 1})
+        self.assertEqual(
+            d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
         transaction.commit()
 
@@ -430,7 +446,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         row1 = rows[0]
         d = row1.asDict()
-        self.assertEqual(d, {"firstname": "udo", "lastname": "juergens", "id": 1})
+        self.assertEqual(
+            d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
         # bypass the session (and transaction) machinery
         results = engine.connect().execute(test_users.select())
@@ -451,7 +468,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         t = transaction.get()
         rows = query.order_by(User.id).all()
 
-        s1 = t.savepoint()
+        t.savepoint()
         session.delete(rows[1])
         session.flush()
         transaction.commit()
@@ -645,8 +662,8 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 
             user = session.query(User).get(1)
 
-            # if the keep_session works correctly, this transaction will not close
-            # the session after commit
+            # if the keep_session works correctly, this transaction will not
+            # close the session after commit
             with transaction.manager:
                 user.firstname = "super"
                 session.flush()
@@ -715,9 +732,11 @@ class RetryTests(unittest.TestCase):
         try:
             s2.flush()
         except orm.exc.ConcurrentModificationError as e:
-            # This error is thrown when the number of updated rows is not as expected
+            # This error is thrown when the number of updated rows is not as
+            # expected
             raised = True
-            self.assertTrue(tm2._retryable(type(e), e), "Error should be retryable")
+            self.assertTrue(tm2._retryable(type(e), e),
+                            "Error should be retryable")
         self.assertTrue(raised, "Did not raise expected error")
 
     def testRetryThread(self):
@@ -742,9 +761,10 @@ class RetryTests(unittest.TestCase):
         thread = threading.Thread(target=target)
         thread.start()
         try:
-            user = s2.query(User).with_lockmode("update").get(1)
+            s2.query(User).with_for_update().get(1)
         except exc.DBAPIError as e:
-            # This error wraps the underlying DBAPI module error, some of which are retryable
+            # This error wraps the underlying DBAPI module error, some of which
+            # are retryable
             raised = True
             retryable = tm2._retryable(type(e), e)
             self.assertTrue(retryable, "Error should be retryable")
@@ -786,8 +806,9 @@ def tearDownReadMe(test):
 
 
 def test_suite():
-    from unittest import TestSuite, makeSuite
     import doctest
+    from unittest import TestSuite
+    from unittest import makeSuite
 
     optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     checker = RENormalizing(
