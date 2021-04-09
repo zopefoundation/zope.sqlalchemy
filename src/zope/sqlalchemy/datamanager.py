@@ -87,8 +87,8 @@ class SessionDataManager(object):
         # Support both SQLAlchemy 1.0 and 1.1
         # https://github.com/zopefoundation/zope.sqlalchemy/issues/15
         _iterate_parents = (
-            getattr(session.transaction, "_iterate_self_and_parents", None)
-            or session.transaction._iterate_parents
+            getattr(session.get_transaction(), "_iterate_self_and_parents", None)
+            or session.get_transaction()._iterate_parents
         )
 
         self.tx = _iterate_parents()[-1]
@@ -157,7 +157,7 @@ class SessionDataManager(object):
         # into account (ajung)
         if set(
             engine.url.drivername
-            for engine in self.session.transaction._connections.keys()
+            for engine in self.get_transaction()._connections.keys()
             if isinstance(engine, Engine)
         ).intersection(NO_SAVEPOINT_SUPPORT):
             raise AttributeError("savepoint")
@@ -299,7 +299,7 @@ class ZopeTransactionEvents(object):
 
     def before_commit(self, session):
         assert (
-            session.transaction.nested
+            session.get_transaction().nested
             or self.transaction_manager.get().status == ZopeStatus.COMMITTING
         ), "Transaction must be committed using the transaction manager"
 
