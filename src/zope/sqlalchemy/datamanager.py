@@ -291,11 +291,13 @@ class ZopeTransactionEvents(object):
     def after_flush(self, session, flush_context):
         mark_changed(session, self.transaction_manager, self.keep_session)
 
-    def after_bulk_update(self, session, query, query_context, result):
-        mark_changed(session, self.transaction_manager, self.keep_session)
+    def after_bulk_update(self, update_context):
+        mark_changed(update_context.session,
+                     self.transaction_manager, self.keep_session)
 
-    def after_bulk_delete(self, session, query, query_context, result):
-        mark_changed(session, self.transaction_manager, self.keep_session)
+    def after_bulk_delete(self, delete_context):
+        mark_changed(delete_context.session,
+                     self.transaction_manager, self.keep_session)
 
     def before_commit(self, session):
         assert (
