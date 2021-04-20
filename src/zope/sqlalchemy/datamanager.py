@@ -84,11 +84,19 @@ class SessionDataManager(object):
             self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
 
+        # Support SQLAlchemy 2.0
+        # https://docs.sqlalchemy.org/en/14/orm/session_api.html?highlight=get_transaction#sqlalchemy.orm.Session.get_transaction
+        transaction = (
+            session.get_transaction()
+            if hasattr(session.transaction, "get_transaction")
+            else session.transaction
+        )
+
         # Support both SQLAlchemy 1.0 and 1.1
         # https://github.com/zopefoundation/zope.sqlalchemy/issues/15
         _iterate_parents = (
-            getattr(session.transaction, "_iterate_self_and_parents", None)
-            or session.transaction._iterate_parents
+            getattr(transaction, "_iterate_self_and_parents", None)
+            or transaction._iterate_parents
         )
 
         self.tx = _iterate_parents()[-1]
@@ -150,6 +158,15 @@ class SessionDataManager(object):
 
         subtransactions.
         """
+
+        # Support SQLAlchemy 2.0
+        session = self.session
+        transaction = (
+            session.get_transaction()
+            if hasattr(session.transaction, "get_transaction")
+            else session.transaction
+        )
+
         # ATT: the following check is weak since the savepoint capability
         # of a RDBMS also depends on its version. E.g. Postgres 7.X does not
         # support savepoints but Postgres is whitelisted independent of its
@@ -157,7 +174,7 @@ class SessionDataManager(object):
         # into account (ajung)
         if set(
             engine.url.drivername
-            for engine in self.session.transaction._connections.keys()
+            for engine in transaction._connections.keys()
             if isinstance(engine, Engine)
         ).intersection(NO_SAVEPOINT_SUPPORT):
             raise AttributeError("savepoint")
@@ -300,8 +317,14 @@ class ZopeTransactionEvents(object):
                      self.transaction_manager, self.keep_session)
 
     def before_commit(self, session):
+        # Support SQLAlchemy 2.0
+        transaction = (
+            session.get_transaction()
+            if hasattr(session.transaction, "get_transaction")
+            else session.transaction
+        )
         assert (
-            session.transaction.nested
+            transaction.nested
             or self.transaction_manager.get().status == ZopeStatus.COMMITTING
         ), "Transaction must be committed using the transaction manager"
 
