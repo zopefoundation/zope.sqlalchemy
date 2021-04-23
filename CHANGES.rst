@@ -8,6 +8,10 @@ Changes
   ``ZopeTransactionEvents``.
   (`#46 <https://github.com/zopefoundation/zope.sqlalchemy/issues/46>`_)
 
+- Reduce DeprecationWarnings with SQLAlchemy 1.4 and require at least
+  SQLAlchemy >= 0.9.
+  (`#54 <https://github.com/zopefoundation/zope.sqlalchemy/issues/54>`_)
+
 
 1.3 (2020-02-17)
 ----------------
