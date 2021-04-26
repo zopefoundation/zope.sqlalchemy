@@ -37,6 +37,9 @@ testenv-commands = [
     "sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/testpg {posargs:-cv} ; fi'",
     "sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/testpg2 {posargs:-cv} ; fi'",
     ]
+testenv-setenv = [
+    "SQLALCHEMY_WARN_20 = true",
+    ]
 testenv-additional = [
     "passenv =",
     "    CI",
