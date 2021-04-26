@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.4 (unreleased)
+1.4 (2021-04-26)
 ----------------
 
 - Add ``mark_changed`` and ``join_transaction`` methods to
