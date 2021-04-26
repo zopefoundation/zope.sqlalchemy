@@ -15,7 +15,7 @@ Changes
 - Add support for SQLAlchemy 1.4.
   (`#58 <https://github.com/zopefoundation/zope.sqlalchemy/issues/58>`_)
 
-- Prevent using an SQLAlchemy 1.4 version which broken flush support.
+- Prevent using an SQLAlchemy 1.4 version with broken flush support.
   (`#57 <https://github.com/zopefoundation/zope.sqlalchemy/issues/57>`_)
 
 
