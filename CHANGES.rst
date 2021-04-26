@@ -12,6 +12,9 @@ Changes
   SQLAlchemy >= 0.9.
   (`#54 <https://github.com/zopefoundation/zope.sqlalchemy/issues/54>`_)
 
+- Add support for SQLAlchemy 1.4.
+  (`#58 <https://github.com/zopefoundation/zope.sqlalchemy/issues/58>`_)
+
 
 1.3 (2020-02-17)
 ----------------
