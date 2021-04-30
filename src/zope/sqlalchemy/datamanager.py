@@ -88,7 +88,7 @@ class SessionDataManager(object):
         # https://docs.sqlalchemy.org/en/14/orm/session_api.html?highlight=get_transaction#sqlalchemy.orm.Session.get_transaction
         transaction = (
             session.get_transaction()
-            if hasattr(session.transaction, "get_transaction")
+            if hasattr(session, "get_transaction")
             else session.transaction
         )
 
@@ -163,7 +163,7 @@ class SessionDataManager(object):
         session = self.session
         transaction = (
             session.get_transaction()
-            if hasattr(session.transaction, "get_transaction")
+            if hasattr(session, "get_transaction")
             else session.transaction
         )
 
@@ -320,7 +320,7 @@ class ZopeTransactionEvents(object):
         # Support SQLAlchemy 2.0
         transaction = (
             session.get_transaction()
-            if hasattr(session.transaction, "get_transaction")
+            if hasattr(session, "get_transaction")
             else session.transaction
         )
         assert (
