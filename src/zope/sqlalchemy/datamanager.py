@@ -309,6 +309,7 @@ class ZopeTransactionEvents(object):
         in_nested_transaction = (
             session.in_nested_transaction()
             if sqlalchemy_version >= "1.4.0"
+            # support sqlalchemy 1.3 and below
             else session.transaction.nested
         )
         assert (
