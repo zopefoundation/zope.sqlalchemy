@@ -318,8 +318,11 @@ class ZopeTransactionEvents(object):
         ), "Transaction must be committed using the transaction manager"
 
     def do_orm_execute(self, execute_state):
-        mark_changed(execute_state.session, self.transaction_manager,
-                     self.keep_session)
+        dml = any((execute_state.is_update, execute_state.is_update,
+                   execute_state.is_delete))
+        if execute_state.is_orm_statement and dml:
+            mark_changed(execute_state.session, self.transaction_manager,
+                         self.keep_session)
 
     def mark_changed(self, session):
         """Developer interface to `mark_changed` that preserves the extension's
