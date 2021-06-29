@@ -328,6 +328,10 @@ class ZopeTransactionEvents(object):
             or self.transaction_manager.get().status == ZopeStatus.COMMITTING
         ), "Transaction must be committed using the transaction manager"
 
+    def do_orm_execute(self, execute_state):
+        mark_changed(execute_state.session, self.transaction_manager,
+                     self.keep_session)
+
     def mark_changed(self, session):
         """Developer interface to `mark_changed` that preserves the extension's
         active configuration.
@@ -380,4 +384,5 @@ def register(
     event.listen(session, "after_bulk_update", ext.after_bulk_update)
     event.listen(session, "after_bulk_delete", ext.after_bulk_delete)
     event.listen(session, "before_commit", ext.before_commit)
+    event.listen(session, "do_orm_execute", ext.do_orm_execute)
     return ext
