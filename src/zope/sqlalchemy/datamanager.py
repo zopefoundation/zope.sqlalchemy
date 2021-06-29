@@ -15,6 +15,7 @@
 from weakref import WeakKeyDictionary
 
 import transaction as zope_transaction
+from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm.exc import ConcurrentModificationError
@@ -84,22 +85,18 @@ class SessionDataManager(object):
             self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
 
-        # Support SQLAlchemy 2.0
-        # https://docs.sqlalchemy.org/en/14/orm/session_api.html?highlight=get_transaction#sqlalchemy.orm.Session.get_transaction
-        transaction = (
-            session.get_transaction()
-            if hasattr(session.transaction, "get_transaction")
-            else session.transaction
-        )
+        if sqlalchemy_version >= "1.4.0":
+            root_transaction = session.get_transaction() or session.begin()
+        else:
+            # Support both SQLAlchemy 1.0 and 1.1
+            # https://github.com/zopefoundation/zope.sqlalchemy/issues/15
+            _iterate_parents = (
+                getattr(session.transaction, "_iterate_self_and_parents", None)
+                or session.transaction._iterate_parents
+            )
+            root_transaction = _iterate_parents()[-1]
 
-        # Support both SQLAlchemy 1.0 and 1.1
-        # https://github.com/zopefoundation/zope.sqlalchemy/issues/15
-        _iterate_parents = (
-            getattr(transaction, "_iterate_self_and_parents", None)
-            or transaction._iterate_parents
-        )
-
-        self.tx = _iterate_parents()[-1]
+        self.tx = root_transaction
         self.session = session
         transaction_manager.get().join(self)
         _SESSION_STATE[session] = status
@@ -159,14 +156,6 @@ class SessionDataManager(object):
         subtransactions.
         """
 
-        # Support SQLAlchemy 2.0
-        session = self.session
-        transaction = (
-            session.get_transaction()
-            if hasattr(session.transaction, "get_transaction")
-            else session.transaction
-        )
-
         # ATT: the following check is weak since the savepoint capability
         # of a RDBMS also depends on its version. E.g. Postgres 7.X does not
         # support savepoints but Postgres is whitelisted independent of its
@@ -174,7 +163,7 @@ class SessionDataManager(object):
         # into account (ajung)
         if set(
             engine.url.drivername
-            for engine in transaction._connections.keys()
+            for engine in self.tx._connections.keys()
             if isinstance(engine, Engine)
         ).intersection(NO_SAVEPOINT_SUPPORT):
             raise AttributeError("savepoint")
@@ -317,14 +306,14 @@ class ZopeTransactionEvents(object):
                      self.transaction_manager, self.keep_session)
 
     def before_commit(self, session):
-        # Support SQLAlchemy 2.0
-        transaction = (
-            session.get_transaction()
-            if hasattr(session.transaction, "get_transaction")
-            else session.transaction
+        in_nested_transaction = (
+            session.in_nested_transaction()
+            if sqlalchemy_version >= "1.4.0"
+            # support sqlalchemy 1.3 and below
+            else session.transaction.nested
         )
         assert (
-            transaction.nested
+            in_nested_transaction
             or self.transaction_manager.get().status == ZopeStatus.COMMITTING
         ), "Transaction must be committed using the transaction manager"
 
