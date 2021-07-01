@@ -12,6 +12,7 @@
 #
 ##############################################################################
 
+from packaging import version
 from weakref import WeakKeyDictionary
 
 import transaction as zope_transaction
@@ -85,7 +86,7 @@ class SessionDataManager(object):
             self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
 
-        if sqlalchemy_version >= "1.4.0":
+        if version(sqlalchemy_version) >= version("1.4.0"):
             root_transaction = session.get_transaction() or session.begin()
         else:
             # Support both SQLAlchemy 1.0 and 1.1
@@ -308,7 +309,7 @@ class ZopeTransactionEvents(object):
     def before_commit(self, session):
         in_nested_transaction = (
             session.in_nested_transaction()
-            if sqlalchemy_version >= "1.4.0"
+            if version(sqlalchemy_version) >= version("1.4.0")
             # support sqlalchemy 1.3 and below
             else session.transaction.nested
         )
