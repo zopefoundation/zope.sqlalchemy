@@ -67,7 +67,7 @@ NO_SAVEPOINT_SUPPORT = {"sqlite"}
 _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
 
-SA_GE_14=parse_version(sqlalchemy_version) >= parse_version('1.4.0')
+SA_GE_14 = parse_version(sqlalchemy_version) >= parse_version('1.4.0')
 
 
 #
