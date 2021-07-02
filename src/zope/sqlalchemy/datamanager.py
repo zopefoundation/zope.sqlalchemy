@@ -379,5 +379,8 @@ def register(
     event.listen(session, "after_bulk_update", ext.after_bulk_update)
     event.listen(session, "after_bulk_delete", ext.after_bulk_delete)
     event.listen(session, "before_commit", ext.before_commit)
-    event.listen(session, "do_orm_execute", ext.do_orm_execute)
+
+    if SA_GE_14:
+        event.listen(session, "do_orm_execute", ext.do_orm_execute)
+
     return ext
