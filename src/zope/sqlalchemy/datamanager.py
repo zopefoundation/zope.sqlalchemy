@@ -12,17 +12,22 @@
 #
 ##############################################################################
 
-from pkg_resources import parse_version
-from weakref import WeakKeyDictionary
 
 import transaction as zope_transaction
+
+from pkg_resources import parse_version
+
 from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm.exc import ConcurrentModificationError
+
 from transaction._transaction import Status as ZopeStatus
 from transaction.interfaces import IDataManagerSavepoint
 from transaction.interfaces import ISavepointDataManager
+
+from weakref import WeakKeyDictionary
+
 from zope.interface import implementer
 
 
