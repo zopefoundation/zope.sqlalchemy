@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-from packaging import version
+from pkg_resources import parse_version
 from weakref import WeakKeyDictionary
 
 import transaction as zope_transaction
@@ -67,6 +67,8 @@ NO_SAVEPOINT_SUPPORT = {"sqlite"}
 _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
 
+SA_GE_14=parse_version(sqlalchemy_version) >= parse_version('1.4.0')
+
 
 #
 # The two variants of the DataManager.
@@ -86,7 +88,7 @@ class SessionDataManager(object):
             self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
 
-        if version(sqlalchemy_version) >= version("1.4.0"):
+        if SA_GE_14:
             root_transaction = session.get_transaction() or session.begin()
         else:
             # Support both SQLAlchemy 1.0 and 1.1
@@ -309,7 +311,7 @@ class ZopeTransactionEvents(object):
     def before_commit(self, session):
         in_nested_transaction = (
             session.in_nested_transaction()
-            if version(sqlalchemy_version) >= version("1.4.0")
+            if SA_GE_14
             # support sqlalchemy 1.3 and below
             else session.transaction.nested
         )
