@@ -2,14 +2,14 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "9f90556c794c07fb953906696fc3037b2847239d"
+commit-id = "7f4327fd1d2df77214735d6ed9a1d4687ff28f6f"
 
 [python]
-with-appveyor = false
 with-pypy = false
 with-legacy-python = true
-with-docs = false
 with-sphinx-doctests = false
+with-windows = false
+with-future-python = false
 
 [coverage]
 fail-under = 70
@@ -21,6 +21,8 @@ additional-envlist = [
     "py{36,37,38,39}-sqlalchemy{14}",
     ]
 testenv-deps = [
+    "py27: psycopg2 < 2.9",
+    "py35: psycopg2 < 2.9",
     "sqlalchemy09: SQLAlchemy==0.9.*",
     "sqlalchemy10: SQLAlchemy==1.0.*",
     "sqlalchemy11: SQLAlchemy==1.1.*",
