@@ -1,7 +1,13 @@
 Changes
 =======
 
-1.4 (unreleased)
+1.5 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
+1.4 (2021-04-26)
 ----------------
 
 - Add ``mark_changed`` and ``join_transaction`` methods to
@@ -14,6 +20,9 @@ Changes
 
 - Add support for SQLAlchemy 1.4.
   (`#58 <https://github.com/zopefoundation/zope.sqlalchemy/issues/58>`_)
+
+- Prevent using an SQLAlchemy 1.4 version with broken flush support.
+  (`#57 <https://github.com/zopefoundation/zope.sqlalchemy/issues/57>`_)
 
 
 1.3 (2020-02-17)
