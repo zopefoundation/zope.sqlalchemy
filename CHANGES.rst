@@ -4,7 +4,13 @@ Changes
 1.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Call ``mark_changed`` also on the ``do_orm_execute`` event if the operation
+  is an insert, update or delete. This is SQLAlchemy >= 1.4 only, as it
+  introduced that event.
+  (`#67 <https://github.com/zopefoundation/zope.sqlalchemy/issues/67>`_)
+
+- Fixup get transaction. There was regression introduced in 1.4.
+  (`#66 <https://github.com/zopefoundation/zope.sqlalchemy/issues/66>`_)
 
 
 1.4 (2021-04-26)
