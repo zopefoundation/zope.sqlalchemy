@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.5 (unreleased)
+1.5 (2021-07-14)
 ----------------
 
 - Call ``mark_changed`` also on the ``do_orm_execute`` event if the operation
