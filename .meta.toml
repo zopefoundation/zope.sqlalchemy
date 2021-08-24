@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "bf824746f106a5f6314af285f3d5642e3ce490ce"
+commit-id = "81a3fca06e30c8fba7256352591a7a298d676a41"
 
 [python]
 with-pypy = false
@@ -18,7 +18,7 @@ fail-under = 70
 additional-envlist = [
     "py{27,35,36}-sqlalchemy{09,10}",
     "py{27,35,36,37,38,39}-sqlalchemy{11,12,13}",
-    "py{36,37,38,39}-sqlalchemy{14}",
+    "py{27,36,37,38,39}-sqlalchemy{14}",
     ]
 testenv-deps = [
     "py27: psycopg2 < 2.9",
