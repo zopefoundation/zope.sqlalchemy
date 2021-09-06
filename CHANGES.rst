@@ -4,7 +4,8 @@ Changes
 1.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support for Python 2.7 on SQLAlchemy 1.4.
+  (`#71 <https://github.com/zopefoundation/zope.sqlalchemy/issues/71>`_)
 
 
 1.5 (2021-07-14)
