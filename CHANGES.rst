@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.6 (unreleased)
+1.6 (2021-09-06)
 ----------------
 
 - Add support for Python 2.7 on SQLAlchemy 1.4.
