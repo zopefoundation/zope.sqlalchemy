@@ -4,7 +4,7 @@ Changes
 1.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support for Python 3.10.
 
 
 1.6 (2021-09-06)
