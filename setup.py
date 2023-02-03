@@ -8,7 +8,7 @@ tests_require = ['zope.testing']
 
 setup(
     name='zope.sqlalchemy',
-    version='1.5.dev0',
+    version='1.7.dev0',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
@@ -43,6 +43,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Database",
         "Topic :: Software Development :: Libraries :: Python Modules",
@@ -51,7 +52,7 @@ setup(
     install_requires=[
         'setuptools',
         'SQLAlchemy>=0.9,!=1.4.0,!=1.4.1,!=1.4.2,!=1.4.3,!=1.4.4,!=1.4.5,!=1.4.6',  # noqa: E501 line too long
-        'SQLAlchemy>=0.9, <1.4; python_version <= "3.5"',
+        'SQLAlchemy>=0.9, <1.4; python_version == "3.5"',
         'transaction>=1.6.0',
         'zope.interface>=3.6.0',
     ],

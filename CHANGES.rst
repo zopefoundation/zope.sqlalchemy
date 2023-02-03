@@ -1,10 +1,29 @@
 Changes
 =======
 
-1.5 (unreleased)
+1.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support for Python 3.10.
+
+
+1.6 (2021-09-06)
+----------------
+
+- Add support for Python 2.7 on SQLAlchemy 1.4.
+  (`#71 <https://github.com/zopefoundation/zope.sqlalchemy/issues/71>`_)
+
+
+1.5 (2021-07-14)
+----------------
+
+- Call ``mark_changed`` also on the ``do_orm_execute`` event if the operation
+  is an insert, update or delete. This is SQLAlchemy >= 1.4 only, as it
+  introduced that event.
+  (`#67 <https://github.com/zopefoundation/zope.sqlalchemy/issues/67>`_)
+
+- Fixup get transaction. There was regression introduced in 1.4.
+  (`#66 <https://github.com/zopefoundation/zope.sqlalchemy/issues/66>`_)
 
 
 1.4 (2021-04-26)
