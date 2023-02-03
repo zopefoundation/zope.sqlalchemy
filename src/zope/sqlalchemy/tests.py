@@ -51,8 +51,9 @@ class SimpleModel:
             setattr(self, k, v)
 
     def asDict(self):
-        return {k: v for k, v in self.__dict__.items()
-                    if not k.startswith("_")}
+        return {k: v
+                for k, v in self.__dict__.items()
+                if not k.startswith("_")}
 
 
 class User(SimpleModel):
