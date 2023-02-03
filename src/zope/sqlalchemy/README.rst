@@ -240,7 +240,7 @@ after a commit. You can tell by trying to access an object after committing:
     >>> transaction.commit()
     >>> bob.name
     Traceback (most recent call last):
-    DetachedInstanceError: Instance <User at ...> is not bound to a Session; attribute refresh operation cannot proceed...
+    sqlalchemy.orm.exc.DetachedInstanceError: Instance <User at ...> is not bound to a Session; attribute refresh operation cannot proceed...
 
 To support cases where a session needs to last longer than a transaction (useful
 in test suites) you can specify to keep a session when registering the events:
@@ -254,7 +254,7 @@ in test suites) you can specify to keep a session when registering the events:
     >>> bob.name = 'bobby'
     >>> transaction.commit()
     >>> bob.name
-    u'bobby'
+    'bobby'
 
 The session must then be closed manually:
 
