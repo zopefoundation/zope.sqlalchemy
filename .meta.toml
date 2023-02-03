@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "e5c611fb"
+commit-id = "1dc6b9e7"
 
 [python]
 with-pypy = false
@@ -65,9 +65,6 @@ steps-before-checkout = [
     "    sudo su - postgres -c '/usr/lib/postgresql/14/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'",
     "    sudo su - postgres -c '/usr/lib/postgresql/14/bin/createdb zope_sqlalchemy_tests'",
     "    sudo su - postgres -c '/usr/lib/postgresql/14/bin/psql -l'",
-    ]
-additional-install = [
-    "pip install tox-factor",
     ]
 test-commands = [
     "tox -f ${{ matrix.config[1] }}",
