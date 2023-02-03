@@ -25,7 +25,6 @@
 #       Install a newer version (3.5.6) and rebuild pysqlite2 against it.
 
 import os
-import re
 import threading
 import time
 import unittest
@@ -37,7 +36,6 @@ from sqlalchemy import orm
 from sqlalchemy import sql
 from transaction._transaction import Status as ZopeStatus
 from transaction.interfaces import TransactionFailedError
-from zope.testing.renormalizing import RENormalizing
 
 from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
@@ -47,14 +45,14 @@ TEST_TWOPHASE = bool(os.environ.get("TEST_TWOPHASE"))
 TEST_DSN = os.environ.get("TEST_DSN", "sqlite:///:memory:")
 
 
-class SimpleModel(object):
+class SimpleModel:
     def __init__(self, **kw):
         for k, v in kw.items():
             setattr(self, k, v)
 
     def asDict(self):
-        return dict((k, v) for k, v in self.__dict__.items()
-                    if not k.startswith("_"))
+        return {k: v for k, v in self.__dict__.items()
+                    if not k.startswith("_")}
 
 
 class User(SimpleModel):
@@ -182,7 +180,7 @@ class DummyTargetResult(DummyException):
     pass
 
 
-class DummyDataManager(object):
+class DummyDataManager:
     def __init__(self, key, target=None, args=(), kwargs={}):
         self.key = key
         self.target = target
@@ -726,7 +724,7 @@ class RetryTests(unittest.TestCase):
         )
         s1.query(User).delete()
         user = s2.query(User).get(1)
-        user.lastname = u"smith"
+        user.lastname = "smith"
         tm1.commit()
         raised = False
         try:
@@ -811,19 +809,6 @@ def test_suite():
     from unittest import makeSuite
 
     optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    checker = RENormalizing(
-        [
-            # Python 3 includes module name in exceptions
-            (
-                re.compile(r"sqlalchemy.orm.exc.DetachedInstanceError:"),
-                "DetachedInstanceError:",
-            ),
-            # Python 3 drops the u'' prefix on unicode strings
-            (re.compile(r"u('[^']*')"), r"\1"),
-            # PyPy includes __builtin__ in front of classes defined in doctests
-            (re.compile(r"__builtin__[.]Address"), "Address"),
-        ]
-    )
     suite = TestSuite()
     suite.addTest(makeSuite(ZopeSQLAlchemyTests))
     suite.addTest(makeSuite(MultipleEngineTests))
@@ -833,7 +818,6 @@ def test_suite():
         doctest.DocFileSuite(
             "README.rst",
             optionflags=optionflags,
-            checker=checker,
             tearDown=tearDownReadMe,
             globs={"TEST_DSN": TEST_DSN, "TEST_TWOPHASE": TEST_TWOPHASE},
         )

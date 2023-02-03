@@ -78,7 +78,7 @@ SA_GE_14 = parse_version(sqlalchemy_version) >= parse_version('1.4.0')
 
 
 @implementer(ISavepointDataManager)
-class SessionDataManager(object):
+class SessionDataManager:
     """Integrate a top level sqlalchemy session transaction into a
 
     zope transaction.
@@ -166,11 +166,11 @@ class SessionDataManager(object):
         # support savepoints but Postgres is whitelisted independent of its
         # version. Possibly additional version information should be taken
         # into account (ajung)
-        if set(
+        if {
             engine.url.drivername
             for engine in self.tx._connections.keys()
             if isinstance(engine, Engine)
-        ).intersection(NO_SAVEPOINT_SUPPORT):
+        }.intersection(NO_SAVEPOINT_SUPPORT):
             raise AttributeError("savepoint")
         return self._savepoint
 
@@ -270,7 +270,7 @@ def mark_changed(
     _SESSION_STATE[session] = STATUS_CHANGED
 
 
-class ZopeTransactionEvents(object):
+class ZopeTransactionEvents:
     """Record that a flush has occurred on a session's connection. This allows
     the DataManager to rollback rather than commit on read only transactions.
     """
