@@ -9,7 +9,6 @@ Changes
 - Drop support for ``SQLAlchemy < 1.1``
   (`#65 <https://github.com/zopefoundation/zope.sqlalchemy/issues/65>`_)
 
-
 - Add support for Python 3.10, 3.11.
 
 
