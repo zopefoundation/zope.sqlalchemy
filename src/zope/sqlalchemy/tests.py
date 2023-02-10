@@ -593,7 +593,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
         results = engine.connect().execute(
-            test_users.select(test_users.c.lastname == "smith")
+            test_users.select().where(test_users.c.lastname == "smith")
         )
         self.assertEqual(len(results.fetchall()), 2)
 
@@ -617,7 +617,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
         results = engine.connect().execute(
-            test_users.select(test_users.c.lastname == "smith")
+            test_users.select().where(test_users.c.lastname == "smith")
         )
         self.assertEqual(len(results.fetchall()), 2)
 
