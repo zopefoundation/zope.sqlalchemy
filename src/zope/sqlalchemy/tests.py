@@ -127,14 +127,14 @@ test_skills = sa.Table(
     sa.ForeignKeyConstraint(("user_id",), ("test_users.id",)),
 )
 
-bound_metadata1 = sa.MetaData(engine)
-bound_metadata2 = sa.MetaData(engine2)
+metadata1 = sa.MetaData()
+metadata2 = sa.MetaData()
 
 test_one = sa.Table(
-    "test_one", bound_metadata1, sa.Column("id", sa.Integer, primary_key=True)
+    "test_one", metadata1, sa.Column("id", sa.Integer, primary_key=True)
 )
 test_two = sa.Table(
-    "test_two", bound_metadata2, sa.Column("id", sa.Integer, primary_key=True)
+    "test_two", metadata2, sa.Column("id", sa.Integer, primary_key=True)
 )
 
 
@@ -146,11 +146,13 @@ class TestTwo(SimpleModel):
     pass
 
 
+mapper_registry = orm.registry()
+
 def setup_mappers():
-    orm.clear_mappers()
-    # Other tests can clear mappers by calling clear_mappers(),
+    mapper_registry.dispose()
+    # Other tests can clear mappers by calling mapper_registry.dispose(),
     # be more robust by setting up mappers in the test setup.
-    m1 = orm.mapper(
+    m1 = mapper_registry.map_imperatively(
         User,
         test_users,
         properties={
@@ -162,10 +164,10 @@ def setup_mappers():
             )
         },
     )
-    m2 = orm.mapper(Skill, test_skills)
+    m2 = mapper_registry.map_imperatively(Skill, test_skills)
 
-    m3 = orm.mapper(TestOne, test_one)
-    m4 = orm.mapper(TestTwo, test_two)
+    m3 = mapper_registry.map_imperatively(TestOne, test_one)
+    m4 = mapper_registry.map_imperatively(TestTwo, test_two)
     return [m1, m2, m3, m4]
 
 
@@ -226,7 +228,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def tearDown(self):
         transaction.abort()
         metadata.drop_all(engine)
-        orm.clear_mappers()
+        mapper_registry.dispose()
 
     def testMarkUnknownSession(self):
         import zope.sqlalchemy.datamanager
@@ -709,7 +711,7 @@ class RetryTests(unittest.TestCase):
         self.tm1.abort()
         self.tm2.abort()
         metadata.drop_all(engine)
-        orm.clear_mappers()
+        mapper_registry.dispose()
 
     def testRetry(self):
         # sqlite is unable to run this test as the databse is locked
@@ -774,24 +776,28 @@ class RetryTests(unittest.TestCase):
 class MultipleEngineTests(unittest.TestCase):
     def setUp(self):
         self.mappers = setup_mappers()
-        bound_metadata1.drop_all()
-        bound_metadata1.create_all()
-        bound_metadata2.drop_all()
-        bound_metadata2.create_all()
+        metadata1.drop_all(engine)
+        metadata1.create_all(engine)
+        metadata2.drop_all(engine2)
+        metadata2.create_all(engine2)
 
     def tearDown(self):
         transaction.abort()
-        bound_metadata1.drop_all()
-        bound_metadata2.drop_all()
-        orm.clear_mappers()
+        metadata1.drop_all(engine)
+        metadata2.drop_all(engine2)
+        mapper_registry.dispose()
 
     def testTwoEngines(self):
         session = UnboundSession()
+        session.bind_table(TestOne, bind=engine)
+        session.bind_table(TestTwo, bind=engine2)
         session.add(TestOne(id=1))
         session.add(TestTwo(id=2))
         session.flush()
         transaction.commit()
         session = UnboundSession()
+        session.bind_table(TestOne, bind=engine)
+        session.bind_table(TestTwo, bind=engine2)
         rows = session.query(TestOne).all()
         self.assertEqual(len(rows), 1)
         rows = session.query(TestTwo).all()
