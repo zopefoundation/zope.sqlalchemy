@@ -154,7 +154,7 @@ def setup_mappers():
         User,
         test_users,
         properties={
-            "skills": orm.relation(
+            "skills": orm.relationship(
                 Skill,
                 primaryjoin=(
                     test_users.columns["id"] == test_skills.columns["user_id"]
