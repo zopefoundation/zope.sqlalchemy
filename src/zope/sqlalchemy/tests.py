@@ -659,7 +659,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             with transaction.manager:
                 session.add(User(id=1, firstname="foo", lastname="bar"))
 
-            user = session.query(User).get(1)
+            user = session.get(User, 1)
 
             # if the keep_session works correctly, this transaction will not
             # close the session after commit
@@ -680,7 +680,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.commit()
 
         session = Session()
-        instance = session.query(User).get(1)
+        instance = session.get(User, 1)
         transaction.commit()  # No work, session.close()
 
         self.assertEqual(sa.inspect(instance).expired, True)
@@ -724,7 +724,7 @@ class RetryTests(unittest.TestCase):
             len(s2.query(User).all()) == 1, "Users table should have one row"
         )
         s1.query(User).delete()
-        user = s2.query(User).get(1)
+        user = s2.get(User, 1)
         user.lastname = "smith"
         tm1.commit()
         raised = False
