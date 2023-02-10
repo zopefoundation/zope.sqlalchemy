@@ -253,7 +253,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.begin()
         session = Session()
         conn = session.connection()
-        conn.execute("SELECT 1 FROM test_users")
+        conn.execute(sa.text("SELECT 1 FROM test_users"))
         mark_changed(session)
         transaction.commit()
 
@@ -267,7 +267,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         conn = session.connection()
         # At least PostgresSQL requires a rollback after invalid SQL is
         # executed
-        self.assertRaises(Exception, conn.execute, "BAD SQL SYNTAX")
+        self.assertRaises(Exception, conn.execute, sa.text("BAD SQL SYNTAX"))
         mark_changed(session)
         try:
             # Thus we could fail in commit
@@ -280,7 +280,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.begin()
         session = Session()
         conn = session.connection()
-        conn.execute("SELECT 1 FROM test_users")
+        conn.execute(sa.text("SELECT 1 FROM test_users"))
         mark_changed(session)
         transaction.commit()
 
@@ -746,7 +746,7 @@ class RetryTests(unittest.TestCase):
             len(s1.query(User).all()) == 1, "Users table should have one row"
         )
         tm2.begin()
-        s2.connection().execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        s2.connection().execute(sa.text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
         self.assertTrue(
             len(s2.query(User).all()) == 1, "Users table should have one row"
         )
