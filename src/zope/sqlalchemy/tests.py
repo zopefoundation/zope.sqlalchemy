@@ -148,6 +148,7 @@ class TestTwo(SimpleModel):
 
 mapper_registry = orm.registry()
 
+
 def setup_mappers():
     mapper_registry.dispose()
     # Other tests can clear mappers by calling mapper_registry.dispose(),
@@ -748,7 +749,9 @@ class RetryTests(unittest.TestCase):
             len(s1.query(User).all()) == 1, "Users table should have one row"
         )
         tm2.begin()
-        s2.connection().execute(sa.text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+        s2.connection().execute(
+            sa.text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        )
         self.assertTrue(
             len(s2.query(User).all()) == 1, "Users table should have one row"
         )
