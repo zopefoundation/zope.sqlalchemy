@@ -96,7 +96,7 @@ This example is lifted directly from the SQLAlchemy declarative documentation.
 First the necessary imports.
 
     >>> from sqlalchemy import *
-    >>> from sqlalchemy.ext.declarative import declarative_base
+    >>> from sqlalchemy.orm import declarative_base
     >>> from sqlalchemy.orm import scoped_session, sessionmaker, relation
     >>> from zope.sqlalchemy import register
     >>> import transaction
