@@ -97,7 +97,7 @@ First the necessary imports.
 
     >>> from sqlalchemy import *
     >>> from sqlalchemy.orm import declarative_base
-    >>> from sqlalchemy.orm import scoped_session, sessionmaker, relation
+    >>> from sqlalchemy.orm import scoped_session, sessionmaker, relationship
     >>> from zope.sqlalchemy import register
     >>> import transaction
 
@@ -108,7 +108,7 @@ Now to define the mapper classes.
     ...     __tablename__ = 'test_users'
     ...     id = Column('id', Integer, primary_key=True)
     ...     name = Column('name', String(50))
-    ...     addresses = relation("Address", backref="user")
+    ...     addresses = relationship("Address", backref="user")
     >>> class Address(Base):
     ...     __tablename__ = 'test_addresses'
     ...     id = Column('id', Integer, primary_key=True)
@@ -146,7 +146,7 @@ machinery, just as Zope's publisher would.
 
 Engine level connections are outside the scope of the transaction integration.
 
-    >>> engine.connect().execute('SELECT * FROM test_users').fetchall()
+    >>> engine.connect().execute(text('SELECT * FROM test_users')).fetchall()
     [(1, ...'bob')]
 
 A new transaction requires a new session. Let's add an address.
