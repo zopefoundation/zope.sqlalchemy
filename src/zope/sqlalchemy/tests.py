@@ -302,7 +302,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
         # bypass the session machinery
-        stmt = sql.select(test_users.columns).order_by("id")
+        stmt = sql.select(*test_users.columns).order_by("id")
         conn = session.connection()
         results = conn.execute(stmt)
         self.assertEqual(
