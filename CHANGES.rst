@@ -1,10 +1,21 @@
 Changes
 =======
 
-1.7 (unreleased)
+2.1 (unreleased)
 ----------------
 
-- Add support for Python 3.10.
+- Nothing changed yet.
+
+
+2.0 (2023-02-06)
+----------------
+
+- Drop support for Python 2.7, 3.5, 3.6.
+
+- Drop support for ``SQLAlchemy < 1.1``
+  (`#65 <https://github.com/zopefoundation/zope.sqlalchemy/issues/65>`_)
+
+- Add support for Python 3.10, 3.11.
 
 
 1.6 (2021-09-06)
