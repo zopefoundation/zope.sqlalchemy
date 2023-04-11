@@ -40,6 +40,12 @@ from transaction.interfaces import TransactionFailedError
 from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
 
+try:
+    from sqlalchemy import __version__ as sqlalchemy_version
+    SQLALCHEMY2 = sqlalchemy_version.startswith('2.')
+except ImportError:
+    SQLALCHEMY2 = False
+
 
 TEST_TWOPHASE = bool(os.environ.get("TEST_TWOPHASE"))
 TEST_DSN = os.environ.get("TEST_DSN", "sqlite:///:memory:")
@@ -127,15 +133,32 @@ test_skills = sa.Table(
     sa.ForeignKeyConstraint(("user_id",), ("test_users.id",)),
 )
 
-bound_metadata1 = sa.MetaData(engine)
-bound_metadata2 = sa.MetaData(engine2)
+if SQLALCHEMY2:
+    # bound metadata does no longer exist in SQLAlchemy 2.0
+    test_one = sa.Table(
+        "test_one",
+        metadata,
+        sa.Column("id", sa.Integer, primary_key=True)
+    )
+    test_two = sa.Table(
+        "test_two",
+        metadata,
+        sa.Column("id", sa.Integer, primary_key=True)
+    )
+else:
+    bound_metadata1 = sa.MetaData(engine)
+    bound_metadata2 = sa.MetaData(engine2)
 
-test_one = sa.Table(
-    "test_one", bound_metadata1, sa.Column("id", sa.Integer, primary_key=True)
-)
-test_two = sa.Table(
-    "test_two", bound_metadata2, sa.Column("id", sa.Integer, primary_key=True)
-)
+    test_one = sa.Table(
+        "test_one",
+        bound_metadata1,
+        sa.Column("id", sa.Integer, primary_key=True)
+    )
+    test_two = sa.Table(
+        "test_two",
+        bound_metadata2,
+        sa.Column("id", sa.Integer, primary_key=True)
+    )
 
 
 class TestOne(SimpleModel):
@@ -150,11 +173,18 @@ def setup_mappers():
     orm.clear_mappers()
     # Other tests can clear mappers by calling clear_mappers(),
     # be more robust by setting up mappers in the test setup.
-    m1 = orm.mapper(
+
+    if SQLALCHEMY2:
+        mapper_reg = orm.registry()
+        mapper = mapper_reg.map_imperatively
+    else:
+        mapper = orm.mapper
+
+    m1 = mapper(
         User,
         test_users,
         properties={
-            "skills": orm.relation(
+            "skills": orm.relationship(
                 Skill,
                 primaryjoin=(
                     test_users.columns["id"] == test_skills.columns["user_id"]
@@ -162,10 +192,10 @@ def setup_mappers():
             )
         },
     )
-    m2 = orm.mapper(Skill, test_skills)
+    m2 = mapper(Skill, test_skills)
 
-    m3 = orm.mapper(TestOne, test_one)
-    m4 = orm.mapper(TestTwo, test_two)
+    m3 = mapper(TestOne, test_one)
+    m4 = mapper(TestTwo, test_two)
     return [m1, m2, m3, m4]
 
 
@@ -253,7 +283,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.begin()
         session = Session()
         conn = session.connection()
-        conn.execute("SELECT 1 FROM test_users")
+        conn.execute(sql.text("SELECT 1 FROM test_users"))
         mark_changed(session)
         transaction.commit()
 
@@ -280,7 +310,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.begin()
         session = Session()
         conn = session.connection()
-        conn.execute("SELECT 1 FROM test_users")
+        conn.execute(sql.text("SELECT 1 FROM test_users"))
         mark_changed(session)
         transaction.commit()
 
@@ -302,7 +332,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
         # bypass the session machinery
-        stmt = sql.select(test_users.columns).order_by("id")
+        stmt = sql.select(*test_users.columns).order_by("id")
         conn = session.connection()
         results = conn.execute(stmt)
         self.assertEqual(
@@ -593,7 +623,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
         results = engine.connect().execute(
-            test_users.select(test_users.c.lastname == "smith")
+            test_users.select().where(test_users.c.lastname == "smith")
         )
         self.assertEqual(len(results.fetchall()), 2)
 
@@ -617,7 +647,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
         results = engine.connect().execute(
-            test_users.select(test_users.c.lastname == "smith")
+            test_users.select().where(test_users.c.lastname == "smith")
         )
         self.assertEqual(len(results.fetchall()), 2)
 
@@ -659,7 +689,10 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             with transaction.manager:
                 session.add(User(id=1, firstname="foo", lastname="bar"))
 
-            user = session.query(User).get(1)
+            if SQLALCHEMY2:
+                user = session.get(User, 1)
+            else:
+                user = session.query(User).get(1)
 
             # if the keep_session works correctly, this transaction will not
             # close the session after commit
@@ -680,7 +713,10 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.commit()
 
         session = Session()
-        instance = session.query(User).get(1)
+        if SQLALCHEMY2:
+            instance = session.get(User, 1)
+        else:
+            instance = session.query(User).get(1)
         transaction.commit()  # No work, session.close()
 
         self.assertEqual(sa.inspect(instance).expired, True)
@@ -773,6 +809,11 @@ class RetryTests(unittest.TestCase):
 
 class MultipleEngineTests(unittest.TestCase):
     def setUp(self):
+        if SQLALCHEMY2:
+            self.skipTest(
+                'Bound metadata is not supported in SQLAlchemy 2.0'
+            )
+
         self.mappers = setup_mappers()
         bound_metadata1.drop_all()
         bound_metadata1.create_all()
