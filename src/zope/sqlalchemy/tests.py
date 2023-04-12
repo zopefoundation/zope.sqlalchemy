@@ -40,6 +40,7 @@ from transaction.interfaces import TransactionFailedError
 from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
 
+
 try:
     from sqlalchemy import __version__ as sqlalchemy_version
     SQLALCHEMY2 = sqlalchemy_version.startswith('2.')
