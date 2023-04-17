@@ -21,16 +21,11 @@ jobs:
         config:
         # [Python version, tox env]
         - ["3.9",   "lint"]
-        - ["3.7",   "py37-sqlalchemy11,py37-sqlalchemy12,py37-sqlalchemy13,py37-sqlalchemy14"]
-        - ["3.7",   "py37-sqlalchemy20"]
-        - ["3.8",   "py38-sqlalchemy11,py38-sqlalchemy12,py38-sqlalchemy13,py38-sqlalchemy14"]
-        - ["3.8",   "py38-sqlalchemy20"]
-        - ["3.9",   "py39-sqlalchemy11,py39-sqlalchemy12,py39-sqlalchemy13,py39-sqlalchemy14"]
-        - ["3.9",   "py39-sqlalchemy20"]
-        - ["3.10",  "py310-sqlalchemy12,py310-sqlalchemy13,py10-sqlalchemy14"]
-        - ["3.10",  "py310-sqlalchemy20"]
-        - ["3.11",  "py311-sqlalchemy14"]
-        - ["3.11",  "py311-sqlalchemy20"]
+        - ["3.7",   "py37"]
+        - ["3.8",   "py38"]
+        - ["3.9",   "py39"]
+        - ["3.10",  "py310"]
+        - ["3.11",  "py311"]
         - ["3.9",   "coverage"]
 
     runs-on: ${{ matrix.os[1] }}
@@ -66,7 +61,7 @@ jobs:
         pip install tox
     - name: Test
       run: |
-        tox -e ${{ matrix.config[1] }}
+        tox -f ${{ matrix.config[1] }}
     - name: Coverage
       if: matrix.config[1] == 'coverage'
       run: |
