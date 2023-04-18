@@ -61,7 +61,7 @@ jobs:
         pip install tox
     - name: Test
       run: |
-        tox -f ${{ matrix.config[1] }}
+        tox -f ${{ matrix.config[1] }} -- -vv
     - name: Coverage
       if: matrix.config[1] == 'coverage'
       run: |
