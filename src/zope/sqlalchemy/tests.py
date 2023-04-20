@@ -778,7 +778,10 @@ class RetryTests(unittest.TestCase):
             len(s2.query(User).all()) == 1, "Users table should have one row"
         )
         s1.query(User).delete()
-        user = s2.query(User).get(1)
+        if SA_GE_20:
+            user = s2.get(User, 1)
+        else:
+            user = s2.query(User).get(1)
         user.lastname = "smith"
         tm1.commit()
         raised = False
@@ -816,7 +819,10 @@ class RetryTests(unittest.TestCase):
         thread = threading.Thread(target=target)
         thread.start()
         try:
-            s2.query(User).with_for_update().get(1)
+            if SA_GE_20:
+                s2.query(User).with_for_update().filter(User.id == 1).one()
+            else:
+                s2.query(User).with_for_update().get(1)
         except exc.DBAPIError as e:
             # This error wraps the underlying DBAPI module error, some of which
             # are retryable
