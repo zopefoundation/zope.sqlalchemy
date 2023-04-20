@@ -873,12 +873,15 @@ def test_suite():
     suite.addTest(makeSuite(MultipleEngineTests))
     if TEST_DSN.startswith("postgres") or TEST_DSN.startswith("oracle"):
         suite.addTest(makeSuite(RetryTests))
-    suite.addTest(
-        doctest.DocFileSuite(
-            "README.rst",
-            optionflags=optionflags,
-            tearDown=tearDownReadMe,
-            globs={"TEST_DSN": TEST_DSN, "TEST_TWOPHASE": TEST_TWOPHASE},
+
+    # examples in docs are only correct for SQLAlchemy >=1.4
+    if parse_version(sqlalchemy_version) >= (1, 4, 0):
+        suite.addTest(
+            doctest.DocFileSuite(
+                "README.rst",
+                optionflags=optionflags,
+                tearDown=tearDownReadMe,
+                globs={"TEST_DSN": TEST_DSN, "TEST_TWOPHASE": TEST_TWOPHASE},
+            )
         )
-    )
     return suite
