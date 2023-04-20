@@ -33,10 +33,10 @@ from pkg_resources import parse_version
 
 import sqlalchemy as sa
 import transaction
+from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy import exc
 from sqlalchemy import orm
 from sqlalchemy import sql
-from sqlalchemy import __version__ as sqlalchemy_version
 from transaction._transaction import Status as ZopeStatus
 from transaction.interfaces import TransactionFailedError
 
@@ -337,7 +337,11 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
         # bypass the session machinery
-        stmt = sql.select(*test_users.columns).order_by("id")
+        if SA_GE_20:
+            stmt = sql.select(*test_users.columns).order_by("id")
+        else:
+            stmt = sql.select(test_users.columns).order_by("id")
+
         conn = session.connection()
         results = conn.execute(stmt)
         self.assertEqual(
