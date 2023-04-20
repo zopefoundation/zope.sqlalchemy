@@ -521,6 +521,9 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         # Existing code might use nested transactions
         if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
             self.skipTest('No save point support')
+        elif SA_GE_20:
+            # FIXME: Should this actually ever be allowed?!
+            self.skipTest('Nested commit not allowed with SQLAlchemy 2.0')
         session = Session()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.begin_nested()
