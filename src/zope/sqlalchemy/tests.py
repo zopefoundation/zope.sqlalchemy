@@ -29,11 +29,14 @@ import threading
 import time
 import unittest
 
+from pkg_resources import parse_version
+
 import sqlalchemy as sa
 import transaction
 from sqlalchemy import exc
 from sqlalchemy import orm
 from sqlalchemy import sql
+from sqlalchemy import __version__ as sqlalchemy_version
 from transaction._transaction import Status as ZopeStatus
 from transaction.interfaces import TransactionFailedError
 
@@ -41,13 +44,7 @@ from zope.sqlalchemy import datamanager as tx
 from zope.sqlalchemy import mark_changed
 
 
-try:
-    from sqlalchemy import __version__ as sqlalchemy_version
-    SQLALCHEMY2 = sqlalchemy_version.startswith('2.')
-except ImportError:
-    SQLALCHEMY2 = False
-
-
+SA_GE_20 = parse_version(sqlalchemy_version) >= parse_version('2.0.0')
 TEST_TWOPHASE = bool(os.environ.get("TEST_TWOPHASE"))
 TEST_DSN = os.environ.get("TEST_DSN", "sqlite:///:memory:")
 
@@ -131,10 +128,12 @@ test_skills = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("user_id", sa.Integer),
     sa.Column("name", sa.VARCHAR(255)),
-    sa.ForeignKeyConstraint(("user_id",), ("test_users.id",)),
+    sa.ForeignKeyConstraint(
+        ("user_id",), ("test_users.id",), ondelete='CASCADE'
+    ),
 )
 
-if SQLALCHEMY2:
+if SA_GE_20:
     # bound metadata does no longer exist in SQLAlchemy 2.0
     test_one = sa.Table(
         "test_one",
@@ -175,7 +174,7 @@ def setup_mappers():
     # Other tests can clear mappers by calling clear_mappers(),
     # be more robust by setting up mappers in the test setup.
 
-    if SQLALCHEMY2:
+    if SA_GE_20:
         mapper_reg = orm.registry()
         mapper = mapper_reg.map_imperatively
     else:
@@ -253,11 +252,16 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         self.mappers = setup_mappers()
         metadata.drop_all(engine)
         metadata.create_all(engine)
+        # a connection which bypasses the session/transaction machinery
+        self.conn = engine.connect()
 
     def tearDown(self):
         transaction.abort()
         metadata.drop_all(engine)
         orm.clear_mappers()
+        if self.conn:
+            self.conn.close()
+        self.conn = None
 
     def testMarkUnknownSession(self):
         import zope.sqlalchemy.datamanager
@@ -480,8 +484,9 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             d, {"firstname": "udo", "lastname": "juergens", "id": 1})
 
         # bypass the session (and transaction) machinery
-        results = engine.connect().execute(test_users.select())
-        self.assertEqual(len(results.fetchall()), 2)
+        with self.conn.begin():
+            results = self.conn.execute(test_users.select())
+            self.assertEqual(len(results.fetchall()), 2)
 
     def testCommitWithSavepoint(self):
         if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
@@ -504,13 +509,14 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.commit()
 
         # bypass the session machinery
-        results = engine.connect().execute(test_users.select())
-        self.assertEqual(len(results.fetchall()), 1)
+        with self.conn.begin():
+            results = self.conn.execute(test_users.select())
+            self.assertEqual(len(results.fetchall()), 1)
 
     def testNestedSessionCommitAllowed(self):
         # Existing code might use nested transactions
         if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
-            return
+            self.skipTest('No save point support')
         session = Session()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.begin_nested()
@@ -612,8 +618,9 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = Session()
         session.query(User).delete()
         transaction.commit()
-        results = engine.connect().execute(test_users.select())
-        self.assertEqual(len(results.fetchall()), 0)
+        with self.conn.begin():
+            results = self.conn.execute(test_users.select())
+            self.assertEqual(len(results.fetchall()), 0)
 
     def testBulkUpdate(self):
         session = Session()
@@ -623,10 +630,11 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = Session()
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
-        results = engine.connect().execute(
-            test_users.select().where(test_users.c.lastname == "smith")
-        )
-        self.assertEqual(len(results.fetchall()), 2)
+        with self.conn.begin():
+            results = self.conn.execute(
+                test_users.select().where(test_users.c.lastname == "smith")
+            )
+            self.assertEqual(len(results.fetchall()), 2)
 
     def testBulkDeleteUsingRegister(self):
         session = EventSession()
@@ -636,8 +644,9 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = EventSession()
         session.query(User).delete()
         transaction.commit()
-        results = engine.connect().execute(test_users.select())
-        self.assertEqual(len(results.fetchall()), 0)
+        with self.conn.begin():
+            results = self.conn.execute(test_users.select())
+            self.assertEqual(len(results.fetchall()), 0)
 
     def testBulkUpdateUsingRegister(self):
         session = EventSession()
@@ -647,10 +656,11 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         session = EventSession()
         session.query(User).update(dict(lastname="smith"))
         transaction.commit()
-        results = engine.connect().execute(
-            test_users.select().where(test_users.c.lastname == "smith")
-        )
-        self.assertEqual(len(results.fetchall()), 2)
+        with self.conn.begin():
+            results = self.conn.execute(
+                test_users.select().where(test_users.c.lastname == "smith")
+            )
+            self.assertEqual(len(results.fetchall()), 2)
 
     def testFailedJoin(self):
         # When a join is issued while the transaction is in COMMITFAILED, the
@@ -690,7 +700,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             with transaction.manager:
                 session.add(User(id=1, firstname="foo", lastname="bar"))
 
-            if SQLALCHEMY2:
+            if SA_GE_20:
                 user = session.get(User, 1)
             else:
                 user = session.query(User).get(1)
@@ -714,7 +724,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.commit()
 
         session = Session()
-        if SQLALCHEMY2:
+        if SA_GE_20:
             instance = session.get(User, 1)
         else:
             instance = session.query(User).get(1)
@@ -783,7 +793,9 @@ class RetryTests(unittest.TestCase):
             len(s1.query(User).all()) == 1, "Users table should have one row"
         )
         tm2.begin()
-        s2.connection().execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        s2.connection().execute(sql.text(
+            "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"
+        ))
         self.assertTrue(
             len(s2.query(User).all()) == 1, "Users table should have one row"
         )
@@ -810,7 +822,7 @@ class RetryTests(unittest.TestCase):
 
 class MultipleEngineTests(unittest.TestCase):
     def setUp(self):
-        if SQLALCHEMY2:
+        if SA_GE_20:
             self.skipTest(
                 'Bound metadata is not supported in SQLAlchemy 2.0'
             )
