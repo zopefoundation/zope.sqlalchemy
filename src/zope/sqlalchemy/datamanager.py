@@ -37,6 +37,15 @@ else:
     _retryable_errors.append(
         (psycopg2.extensions.TransactionRollbackError, None))
 
+try:
+    import psycopg.errors
+except ImportError:
+    pass
+else:
+    _retryable_errors.append(
+        (psycopg.errors.OperationalError, lambda e: e.sqlstate[:2] == '40')
+    )
+
 # ORA-08177: can't serialize access for this transaction
 try:
     import cx_Oracle
