@@ -875,7 +875,7 @@ def test_suite():
         suite.addTest(makeSuite(RetryTests))
 
     # examples in docs are only correct for SQLAlchemy >=1.4
-    if parse_version(sqlalchemy_version) >= (1, 4, 0):
+    if parse_version(sqlalchemy_version) >= parse_version('1.4.0'):
         suite.addTest(
             doctest.DocFileSuite(
                 "README.rst",
