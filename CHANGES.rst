@@ -4,7 +4,18 @@ Changes
 2.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support for SQLAlchemy 2.0.
+
+- Add support for new psycopg v3 backend.
+
+- No longer allow calling ``session.commit()`` within a manual nested database
+  transaction (a savepoint). If you want to use savepoints directly in code that is
+  not aware of ``transaction.savepoint()`` with ``session.begin_nested()`` then
+  use the savepoint returned by the function to commit just the nested transaction
+  i.e. ``savepoint = session.begin_nested(); savepoint.commit()`` or use it as a
+  context manager i.e. ``with session.begin_nested():``.
+  (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79#issuecomment-1516069841>`_)
+
 
 
 2.0 (2023-02-06)

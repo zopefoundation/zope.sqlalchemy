@@ -128,9 +128,7 @@ test_skills = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("user_id", sa.Integer),
     sa.Column("name", sa.VARCHAR(255)),
-    sa.ForeignKeyConstraint(
-        ("user_id",), ("test_users.id",), ondelete='CASCADE'
-    ),
+    sa.ForeignKeyConstraint(("user_id",), ("test_users.id",)),
 )
 
 if SA_GE_20:
@@ -259,9 +257,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         transaction.abort()
         metadata.drop_all(engine)
         orm.clear_mappers()
-        if self.conn:
-            self.conn.close()
-        self.conn = None
+        self.conn.close()
 
     def testMarkUnknownSession(self):
         import zope.sqlalchemy.datamanager
@@ -422,7 +418,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def testRollbackAttributes(self):
         use_savepoint = engine.url.drivername not in tx.NO_SAVEPOINT_SUPPORT
         if not use_savepoint:
-            return  # sqlite databases do not support savepoints
+            self.skipTest('No savepoint support')
 
         t = transaction.get()
         session = Session()
@@ -494,7 +490,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
 
     def testCommitWithSavepoint(self):
         if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
-            return
+            self.skipTest('No savepoint support')
         session = Session()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.add(User(id=2, firstname="heino", lastname="n/a"))
@@ -517,18 +513,15 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
             results = self.conn.execute(test_users.select())
             self.assertEqual(len(results.fetchall()), 1)
 
-    def testNestedSessionCommitAllowed(self):
+    def testSessionSavepointCommitAllowed(self):
         # Existing code might use nested transactions
         if engine.url.drivername in tx.NO_SAVEPOINT_SUPPORT:
             self.skipTest('No save point support')
-        elif SA_GE_20:
-            # FIXME: Should this actually ever be allowed?!
-            self.skipTest('Nested commit not allowed with SQLAlchemy 2.0')
         session = Session()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
-        session.begin_nested()
+        savepoint = session.begin_nested()
         session.add(User(id=2, firstname="heino", lastname="n/a"))
-        session.commit()
+        savepoint.commit()
         transaction.commit()
 
     def testSessionCommitDisallowed(self):
@@ -539,7 +532,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
     def testTwoPhase(self):
         session = Session()
         if not session.twophase:
-            return
+            self.skipTest('No two phase transaction support')
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.add(User(id=2, firstname="heino", lastname="n/a"))
         session.flush()
@@ -749,11 +742,11 @@ class RetryTests(unittest.TestCase):
         self.tm2 = transaction.TransactionManager()
         # With psycopg2 you might supply isolation_level='SERIALIZABLE' here,
         # unfortunately that is not supported by cx_Oracle.
-        e1 = sa.create_engine(TEST_DSN)
-        e2 = sa.create_engine(TEST_DSN)
-        self.s1 = orm.sessionmaker(bind=e1, twophase=TEST_TWOPHASE)()
+        self.e1 = sa.create_engine(TEST_DSN)
+        self.e2 = sa.create_engine(TEST_DSN)
+        self.s1 = orm.sessionmaker(bind=self.e1, twophase=TEST_TWOPHASE)()
         tx.register(self.s1, transaction_manager=self.tm1)
-        self.s2 = orm.sessionmaker(bind=e2, twophase=TEST_TWOPHASE)()
+        self.s2 = orm.sessionmaker(bind=self.e2, twophase=TEST_TWOPHASE)()
         tx.register(self.s2, transaction_manager=self.tm2)
         self.tm1.begin()
         self.s1.add(User(id=1, firstname="udo", lastname="juergens"))
@@ -764,6 +757,14 @@ class RetryTests(unittest.TestCase):
         self.tm2.abort()
         metadata.drop_all(engine)
         orm.clear_mappers()
+        # ensure any open connections on the temporary engines get closed
+        # if we don't do this we get a `ResourceWarning` in psycopg v3
+        self.e1.dispose()
+        self.e2.dispose()
+        self.e1 = None
+        self.e2 = None
+        self.s1 = None
+        self.s2 = None
 
     def testRetry(self):
         # sqlite is unable to run this test as the databse is locked
