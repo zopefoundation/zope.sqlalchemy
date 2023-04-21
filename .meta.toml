@@ -28,17 +28,22 @@ testenv-deps = [
     "sqlalchemy20: SQLAlchemy==2.0.*",
     ]
 testenv-commands-pre = [
-    "sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
-    "sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "!sqlalchemy20: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "!sqlalchemy20: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "sqlalchemy20: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "sqlalchemy20: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
     ]
 testenv-commands = [
     "{envbindir}/test {posargs:-cv}",
-    "sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/testpg {posargs:-cv} ; fi'",
-    "sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/testpg2 {posargs:-cv} ; fi'",
+    "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg {posargs:-cv} ; fi'",
+    "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg2 {posargs:-cv} ; fi'",
+    "sqlalchemy20: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg3 {posargs:-cv} ; fi'",
+    "sqlalchemy20: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg32 {posargs:-cv} ; fi'",
     ]
 testenv-additional = [
     "passenv =",
     "    CI",
+    "    TEST_PG",
     "allowlist_externals =",
     "    sh",
     ]
@@ -47,9 +52,11 @@ use-flake8 = true
 [manifest]
 additional-rules = [
     "include github_actions.cfg",
+    "include github_actions20.cfg",
     "include mysql.cfg",
     "include oracle.cfg",
     "include postgres.cfg",
+    "include postgres20.cfg",
     "include pysqlite.cfg",
     "recursive-include src *.rst",
     ]
