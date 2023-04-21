@@ -5,8 +5,10 @@ Changes
 ----------------
 
 - Add support for SQLAlchemy 2.0.
+  (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79>`_)
 
 - Add support for new psycopg v3 backend.
+  (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79>`_)
 
 - No longer allow calling ``session.commit()`` within a manual nested database
   transaction (a savepoint). If you want to use savepoints directly in code that is
