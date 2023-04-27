@@ -10,6 +10,8 @@ Changes
 - Add support for new psycopg v3 backend.
   (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79>`_)
 
+**Breaking Changes**
+
 - No longer allow calling ``session.commit()`` within a manual nested database
   transaction (a savepoint). If you want to use savepoints directly in code that is
   not aware of ``transaction.savepoint()`` with ``session.begin_nested()`` then

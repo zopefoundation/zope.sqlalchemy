@@ -15,7 +15,7 @@
 
 from weakref import WeakKeyDictionary
 
-from pkg_resources import parse_version
+from packaging.version import Version as parse_version
 
 import transaction as zope_transaction
 from sqlalchemy import __version__ as sqlalchemy_version
@@ -37,6 +37,7 @@ else:
     _retryable_errors.append(
         (psycopg2.extensions.TransactionRollbackError, None))
 
+# Error Class 40: Transaction Rollback
 try:
     import psycopg.errors
 except ImportError:
