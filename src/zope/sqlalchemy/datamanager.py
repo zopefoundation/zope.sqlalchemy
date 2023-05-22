@@ -37,14 +37,16 @@ else:
     _retryable_errors.append(
         (psycopg2.extensions.TransactionRollbackError, None))
 
-# Error Class 40: Transaction Rollback
+# Error Class 40: Transaction Rollback, for details
+# see https://www.psycopg.org/psycopg3/docs/api/errors.html
 try:
     import psycopg.errors
 except ImportError:
     pass
 else:
     _retryable_errors.append(
-        (psycopg.errors.OperationalError, lambda e: e.sqlstate[:2] == '40')
+        (psycopg.errors.OperationalError,
+         lambda e: e.sqlstate.startswith('40'))
     )
 
 # ORA-08177: can't serialize access for this transaction
