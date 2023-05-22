@@ -68,7 +68,6 @@ class Skill(SimpleModel):
 
 
 engine = sa.create_engine(TEST_DSN)
-engine2 = sa.create_engine(TEST_DSN)
 
 # See https://code.google.com/p/pysqlite-static-env/
 HAS_PATCHED_PYSQLITE = False
@@ -143,6 +142,8 @@ if SA_GE_20:
         sa.Column("id", sa.Integer, primary_key=True)
     )
 else:
+    engine2 = sa.create_engine(TEST_DSN)
+
     bound_metadata1 = sa.MetaData(engine)
     bound_metadata2 = sa.MetaData(engine2)
 
