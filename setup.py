@@ -46,7 +46,7 @@ setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'setuptools',
+        'packaging',
         'SQLAlchemy>=1.1,!=1.4.0,!=1.4.1,!=1.4.2,!=1.4.3,!=1.4.4,!=1.4.5,!=1.4.6',  # noqa: E501 line too long
         'transaction>=1.6.0',
         'zope.interface>=3.6.0',

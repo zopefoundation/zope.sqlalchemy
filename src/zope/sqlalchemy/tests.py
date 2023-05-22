@@ -29,10 +29,9 @@ import threading
 import time
 import unittest
 
-from packaging.version import Version as parse_version
-
 import sqlalchemy as sa
 import transaction
+from packaging.version import Version as parse_version
 from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy import exc
 from sqlalchemy import orm

@@ -15,9 +15,8 @@
 
 from weakref import WeakKeyDictionary
 
-from packaging.version import Version as parse_version
-
 import transaction as zope_transaction
+from packaging.version import Version as parse_version
 from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.exc import DBAPIError
