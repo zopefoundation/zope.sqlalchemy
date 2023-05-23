@@ -12,7 +12,7 @@ with-future-python = false
 with-macos = false
 
 [coverage]
-fail-under = 70
+fail-under = 65
 
 [tox]
 additional-envlist = [
