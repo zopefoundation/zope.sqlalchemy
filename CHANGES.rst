@@ -1,7 +1,7 @@
 Changes
 =======
 
-3.0 (unreleased)
+3.0 (2023-06-01)
 ----------------
 
 - Add support for SQLAlchemy 2.0 and for new psycopg v3 backend.
