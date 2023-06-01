@@ -4,10 +4,7 @@ Changes
 3.0 (unreleased)
 ----------------
 
-- Add support for SQLAlchemy 2.0.
-  (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79>`_)
-
-- Add support for new psycopg v3 backend.
+- Add support for SQLAlchemy 2.0 and for new psycopg v3 backend.
   (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79>`_)
 
 **Breaking Changes**
@@ -18,7 +15,7 @@ Changes
   use the savepoint returned by the function to commit just the nested transaction
   i.e. ``savepoint = session.begin_nested(); savepoint.commit()`` or use it as a
   context manager i.e. ``with session.begin_nested():``.
-  (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79#issuecomment-1516069841>`_)
+  (`for details see #79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79#issuecomment-1516069841>`_)
 
 
 2.0 (2023-02-06)
