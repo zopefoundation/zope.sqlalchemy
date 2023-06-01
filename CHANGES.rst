@@ -1,7 +1,7 @@
 Changes
 =======
 
-2.1 (unreleased)
+3.0 (unreleased)
 ----------------
 
 - Add support for SQLAlchemy 2.0.
@@ -19,7 +19,6 @@ Changes
   i.e. ``savepoint = session.begin_nested(); savepoint.commit()`` or use it as a
   context manager i.e. ``with session.begin_nested():``.
   (`#79 <https://github.com/zopefoundation/zope.sqlalchemy/pull/79#issuecomment-1516069841>`_)
-
 
 
 2.0 (2023-02-06)
