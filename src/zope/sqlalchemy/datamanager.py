@@ -45,7 +45,7 @@ except ImportError:
 else:
     _retryable_errors.append(
         (psycopg.errors.OperationalError,
-         lambda e: e.sqlstate.startswith('40'))
+         lambda e: e.sqlstate and e.sqlstate.startswith('40'))
     )
 
 # ORA-08177: can't serialize access for this transaction
