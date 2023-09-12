@@ -5,7 +5,7 @@ Changes
 ----------------
 
 - Fix ``psycopg.errors.OperationalError.sqlstate`` can be ``None``.
-  (`#81 https://github.com/zopefoundation/zope.sqlalchemy/issues/81`_)
+  (`#81 <https://github.com/zopefoundation/zope.sqlalchemy/issues/81>`_)
 
 
 3.0 (2023-06-01)
