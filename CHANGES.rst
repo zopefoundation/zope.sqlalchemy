@@ -1,7 +1,7 @@
 Changes
 =======
 
-3.1 (unreleased)
+3.1 (2023-09-12)
 ----------------
 
 - Fix ``psycopg.errors.OperationalError.sqlstate`` can be ``None``.
