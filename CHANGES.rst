@@ -4,6 +4,8 @@ Changes
 3.2 (unreleased)
 ----------------
 
+* Add support for Python 3.12.
+
 * Drop support for Python {3.7,3.8,3.9}-sqlalchemy11.
 
 * Drop support for Python {3.7,3.8,3.9,3.10}-sqlalchemy{12,13.}.
