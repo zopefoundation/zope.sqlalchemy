@@ -8,7 +8,6 @@ Changes
 
 - Drop support for Python 3.7.
 
-
 3.1 (2023-09-12)
 ----------------
 
