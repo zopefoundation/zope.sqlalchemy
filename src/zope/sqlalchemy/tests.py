@@ -892,14 +892,14 @@ def tearDownReadMe(test):
 def test_suite():
     import doctest
     from unittest import TestSuite
-    from unittest import makeSuite
+    from unittest import defaultTestLoader
 
     optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     suite = TestSuite()
-    suite.addTest(makeSuite(ZopeSQLAlchemyTests))
-    suite.addTest(makeSuite(MultipleEngineTests))
+    suite.addTest(defaultTestLoader.loadTestsFromTestCase(ZopeSQLAlchemyTests))
+    suite.addTest(defaultTestLoader.loadTestsFromTestCase(MultipleEngineTests))
     if TEST_DSN.startswith("postgres") or TEST_DSN.startswith("oracle"):
-        suite.addTest(makeSuite(RetryTests))
+        suite.addTest(defaultTestLoader.loadTestsFromTestCase(RetryTests))
 
     # examples in docs are only correct for SQLAlchemy >=1.4
     if parse_version(sqlalchemy_version) >= parse_version('1.4.0'):
