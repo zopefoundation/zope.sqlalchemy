@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "6e808865"
+commit-id = "85622de1"
 
 [python]
 with-pypy = false
@@ -19,7 +19,7 @@ fail-under = 65
 additional-envlist = [
     "py{38,39}-sqlalchemy11",
     "py{38,39,310}-sqlalchemy{12,13}",
-    "py{38,39,310,311,312}-sqlalchemy{14,20}",
+    "py{38,39,310,311,312,313}-sqlalchemy{14,20}",
     ]
 testenv-deps = [
     "sqlalchemy11: SQLAlchemy==1.1.*",
