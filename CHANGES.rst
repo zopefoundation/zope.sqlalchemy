@@ -7,6 +7,7 @@ Changes
 - SQLAlchemy's versions 2.0.32 up to 2.0.35 run into dead locks when running
   the tests on Python 3.11+, so excluding them from the list of supported
   versions.
+  (`#84 <https://github.com/zopefoundation/zope.sqlalchemy/issues/84>`_)
 
 3.1 (2023-09-12)
 ----------------
