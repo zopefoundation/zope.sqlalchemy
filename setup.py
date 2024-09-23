@@ -5,6 +5,20 @@ from setuptools import setup
 
 
 tests_require = ['zope.testing']
+sqlalchemy_versions = ','.join([
+    '>=1.1',
+    '!=1.4.0',
+    '!=1.4.1',
+    '!=1.4.2',
+    '!=1.4.3',
+    '!=1.4.4',
+    '!=1.4.5',
+    '!=1.4.6',
+    '!=2.0.32',
+    '!=2.0.33',
+    '!=2.0.34',
+    '!=2.0.35',
+])
 
 setup(
     name='zope.sqlalchemy',
@@ -47,7 +61,7 @@ setup(
     install_requires=[
         'packaging',
         'setuptools',
-        'SQLAlchemy>=1.1,!=1.4.0,!=1.4.1,!=1.4.2,!=1.4.3,!=1.4.4,!=1.4.5,!=1.4.6,!=2.0.32,!=2.0.33,!=2.0.34,!=2.0.35',  # noqa: E501 line too long
+        f'SQLAlchemy{sqlalchemy_versions}',
         'transaction>=1.6.0',
         'zope.interface>=3.6.0',
     ],
