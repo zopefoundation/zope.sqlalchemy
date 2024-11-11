@@ -14,6 +14,7 @@ sqlalchemy_versions = ','.join([
     '!=1.4.4',
     '!=1.4.5',
     '!=1.4.6',
+    '!=2.0.30',  # Tests run into a deadlock on Python 3.12 from here on
     '!=2.0.31',
     '!=2.0.32',
     '!=2.0.33',
