@@ -37,6 +37,7 @@ jobs:
       run: |
         sudo mkdir -p /usr/local/pgsql/data
         sudo chown postgres /usr/local/pgsql/data
+        sudo ls -l /usr/lib/postgresql
         sudo su - postgres -c '/usr/lib/postgresql/15/bin/initdb -D /usr/local/pgsql/data'
         sudo su - postgres -c 'echo "max_prepared_transactions=10" >> /usr/local/pgsql/data/postgresql.conf'
         sudo su - postgres -c 'cat /usr/local/pgsql/data/postgresql.conf'
