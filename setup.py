@@ -5,6 +5,34 @@ from setuptools import setup
 
 
 tests_require = ['zope.testing']
+sqlalchemy_versions = ','.join([
+    '>=1.1',
+    '!=1.4.0',
+    '!=1.4.1',
+    '!=1.4.2',
+    '!=1.4.3',
+    '!=1.4.4',
+    '!=1.4.5',
+    '!=1.4.6',
+    '!=2.0.19',  # Tests run into a deadlock on Python 3.12 from here on
+    '!=2.0.20',
+    '!=2.0.21',
+    '!=2.0.22',
+    '!=2.0.23',
+    '!=2.0.24',
+    '!=2.0.25',
+    '!=2.0.26',
+    '!=2.0.27',
+    '!=2.0.28',
+    '!=2.0.29',
+    '!=2.0.30',
+    '!=2.0.31',
+    '!=2.0.32',
+    '!=2.0.33',
+    '!=2.0.34',
+    '!=2.0.35',
+    '!=2.0.36',
+])
 
 setup(
     name='zope.sqlalchemy',
@@ -16,14 +44,12 @@ setup(
     namespace_packages=['zope'],
     test_suite='zope.sqlalchemy.tests.test_suite',
     author='Laurence Rowe',
-
     author_email='laurence@lrowe.co.uk',
     url='https://github.com/zopefoundation/zope.sqlalchemy',
     description="Minimal Zope/SQLAlchemy transaction integration",
     long_description=(
         open(os.path.join('src', 'zope', 'sqlalchemy', 'README.rst')).read() +
-        "\n\n" +
-        open('CHANGES.rst').read()),
+        "\n\n" + open('CHANGES.rst').read()),
     license='ZPL 2.1',
     keywords='zope zope3 sqlalchemy',
     classifiers=[
@@ -35,20 +61,21 @@ setup(
         "License :: OSI Approved :: Zope Public License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Database",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=[
         'packaging',
         'setuptools',
-        'SQLAlchemy>=1.1,!=1.4.0,!=1.4.1,!=1.4.2,!=1.4.3,!=1.4.4,!=1.4.5,!=1.4.6,!=2.0.32,!=2.0.33,!=2.0.34,!=2.0.35',  # noqa: E501 line too long
+        f'SQLAlchemy{sqlalchemy_versions}',
         'transaction>=1.6.0',
         'zope.interface>=3.6.0',
     ],
