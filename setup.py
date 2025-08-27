@@ -1,6 +1,5 @@
 import os.path
 
-from setuptools import find_packages
 from setuptools import setup
 
 
@@ -9,11 +8,8 @@ tests_require = ['zope.testing']
 setup(
     name='zope.sqlalchemy',
     version='4.0.dev0',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
     include_package_data=True,
     zip_safe=False,
-    namespace_packages=['zope'],
     test_suite='zope.sqlalchemy.tests.test_suite',
     author='Laurence Rowe',
 
