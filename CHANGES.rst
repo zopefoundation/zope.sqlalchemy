@@ -1,8 +1,10 @@
 Changes
 =======
 
-3.2 (unreleased)
+4.0 (unreleased)
 ----------------
+
+* Replace ``pkg_resources`` namespace with PEP 420 native namespace.
 
 - SQLAlchemy's versions 2.0.32 up to 2.0.35 run into dead locks when running
   the tests on Python 3.11+, so excluding them from the list of supported
