@@ -4,7 +4,7 @@ Changes
 4.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Remove unnecessary ``setuptools`` runtime dependency.
 
 
 4.0 (2025-09-12)
