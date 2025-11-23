@@ -147,8 +147,10 @@ machinery, just as Zope's publisher would.
 
 Engine level connections are outside the scope of the transaction integration.
 
-    >>> engine.connect().execute(text('SELECT * FROM test_users')).fetchall()
+    >>> conn = engine.connect()
+    >>> conn.execute(text('SELECT * FROM test_users')).fetchall()
     [(1, ...'bob')]
+    >>> conn.close()
 
 A new transaction requires a new session. Let's add an address.
 
