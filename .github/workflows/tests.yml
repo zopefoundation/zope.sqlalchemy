@@ -39,12 +39,12 @@ jobs:
       run: |
         sudo mkdir -p /usr/local/pgsql/data
         sudo chown postgres /usr/local/pgsql/data
-        sudo su - postgres -c '/usr/lib/postgresql/14/bin/initdb -D /usr/local/pgsql/data'
+        sudo su - postgres -c '/usr/lib/postgresql/17/bin/initdb -D /usr/local/pgsql/data'
         sudo su - postgres -c 'echo "max_prepared_transactions=10" >> /usr/local/pgsql/data/postgresql.conf'
         sudo su - postgres -c 'cat /usr/local/pgsql/data/postgresql.conf'
-        sudo su - postgres -c '/usr/lib/postgresql/14/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'
-        sudo su - postgres -c '/usr/lib/postgresql/14/bin/createdb zope_sqlalchemy_tests'
-        sudo su - postgres -c '/usr/lib/postgresql/14/bin/psql -l'
+        sudo su - postgres -c '/usr/lib/postgresql/17/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'
+        sudo su - postgres -c '/usr/lib/postgresql/17/bin/createdb zope_sqlalchemy_tests'
+        sudo su - postgres -c '/usr/lib/postgresql/17/bin/psql -l'
     - uses: actions/checkout@v5
       with:
         persist-credentials: false
