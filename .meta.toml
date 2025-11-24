@@ -73,4 +73,4 @@ steps-before-checkout = [
     "    sudo su - postgres -c '/usr/lib/postgresql/16/bin/createdb zope_sqlalchemy_tests'",
     "    sudo su - postgres -c '/usr/lib/postgresql/16/bin/psql -l'",
 ]
-test-commands = ["tox -f ${{ matrix.config[1] }}"]
+test-commands = ["uvx --with tox-uv tox -f ${{ matrix.config[1] }}"]

@@ -61,7 +61,7 @@ jobs:
     - name: Test
       if: ${{ !startsWith(runner.os, 'Mac') }}
       run: |
-        tox -f ${{ matrix.config[1] }}
+        uvx --with tox-uv tox -f ${{ matrix.config[1] }}
     - name: Test (macOS)
       if: ${{ startsWith(runner.os, 'Mac') }}
       run: uvx --with tox-uv tox -e ${{ matrix.config[1] }}-universal2
