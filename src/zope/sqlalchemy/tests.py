@@ -265,7 +265,7 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         DummyDataManager(key="dummy.first")
         session = Session()
         mark_changed(session)
-        self.assertTrue(session in zope.sqlalchemy.datamanager._SESSION_STATE)
+        self.assertIn(session, zope.sqlalchemy.datamanager._SESSION_STATE)
 
     def testAbortBeforeCommit(self):
         # Simulate what happens in a conflict error
@@ -399,18 +399,27 @@ class ZopeSQLAlchemyTests(unittest.TestCase):
         s1 = t.savepoint()
         session.add(User(id=1, firstname="udo", lastname="juergens"))
         session.flush()
-        self.assertTrue(len(query.all()) == 1,
-                        "Users table should have one row")
+        self.assertEqual(
+            len(query.all()),
+            1,
+            "Users table should have one row"
+        )
 
         s2 = t.savepoint()
         session.add(User(id=2, firstname="heino", lastname="n/a"))
         session.flush()
-        self.assertTrue(len(query.all()) == 2,
-                        "Users table should have two rows")
+        self.assertEqual(
+            len(query.all()),
+            2,
+            "Users table should have two rows"
+        )
 
         s2.rollback()
-        self.assertTrue(len(query.all()) == 1,
-                        "Users table should have one row")
+        self.assertEqual(
+            len(query.all()),
+            1,
+            "Users table should have one row"
+        )
 
         s1.rollback()
         self.assertFalse(query.all(), "Users table should be empty")
@@ -771,12 +780,16 @@ class RetryTests(unittest.TestCase):
         tm1, tm2, s1, s2 = self.tm1, self.tm2, self.s1, self.s2
         # make sure we actually start a session.
         tm1.begin()
-        self.assertTrue(
-            len(s1.query(User).all()) == 1, "Users table should have one row"
+        self.assertEqual(
+            len(s1.query(User).all()),
+            1,
+            "Users table should have one row"
         )
         tm2.begin()
-        self.assertTrue(
-            len(s2.query(User).all()) == 1, "Users table should have one row"
+        self.assertEqual(
+            len(s2.query(User).all()),
+            1,
+            "Users table should have one row"
         )
         s1.query(User).delete()
         if SA_GE_20:
@@ -800,15 +813,19 @@ class RetryTests(unittest.TestCase):
         tm1, tm2, s1, s2 = self.tm1, self.tm2, self.s1, self.s2
         # make sure we actually start a session.
         tm1.begin()
-        self.assertTrue(
-            len(s1.query(User).all()) == 1, "Users table should have one row"
+        self.assertEqual(
+            len(s1.query(User).all()),
+            1,
+            "Users table should have one row"
         )
         tm2.begin()
         s2.connection().execute(sql.text(
             "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"
         ))
-        self.assertTrue(
-            len(s2.query(User).all()) == 1, "Users table should have one row"
+        self.assertEqual(
+            len(s2.query(User).all()),
+            1,
+            "Users table should have one row"
         )
         s1.query(User).delete()
         raised = False
