@@ -876,10 +876,11 @@ def test_suite():
     import doctest
     optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     suite = unittest.TestSuite()
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(ZopeSQLAlchemyTests))
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(MultipleEngineTests))
+    testLoader = unittest.defaultTestLoader
+    suite.addTest(testLoader.loadTestsFromTestCase(ZopeSQLAlchemyTests))
+    suite.addTest(testLoader.loadTestsFromTestCase(MultipleEngineTests))
     if TEST_DSN.startswith("postgres") or TEST_DSN.startswith("oracle"):
-        suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(RetryTests))
+        suite.addTest(testLoader.loadTestsFromTestCase(RetryTests))
 
     # examples in docs are only correct for SQLAlchemy >=1.4
     if parse_version(sqlalchemy_version) >= parse_version('1.4.0'):
