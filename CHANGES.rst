@@ -4,6 +4,8 @@ Changes
 4.1 (unreleased)
 ----------------
 
+* Drop support for Python 3.7, 3.8, 3.9, py{37.
+
 - Remove no longer necessary ``setuptools`` runtime dependency.
 
 
