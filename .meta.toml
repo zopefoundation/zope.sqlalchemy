@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/zope-product
 [meta]
 template = "zope-product"
-commit-id = "1dc6b9e7"
+commit-id = "46a5f4f9"
 
 [python]
 with-pypy = false
@@ -10,43 +10,42 @@ with-sphinx-doctests = false
 with-windows = false
 with-future-python = false
 with-macos = false
+with-docs = false
 
 [coverage]
 fail-under = 65
 
 [tox]
 additional-envlist = [
-    "py{37,38,39}-sqlalchemy11",
-    "py{37,38,39,310}-sqlalchemy{12,13}",
-    "py{37,38,39,310,311}-sqlalchemy{14,20}",
-    ]
+    "py{310}-sqlalchemy{12,13}",
+    "py{310,311,312,313,314}-sqlalchemy{14,20}",
+]
 testenv-deps = [
-    "sqlalchemy11: SQLAlchemy==1.1.*",
     "sqlalchemy12: SQLAlchemy==1.2.*",
     "sqlalchemy13: SQLAlchemy==1.3.*",
     "sqlalchemy14: SQLAlchemy==1.4.*",
     "sqlalchemy20: SQLAlchemy==2.0.*",
-    ]
+]
 testenv-commands-pre = [
     "!sqlalchemy20: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
     "!sqlalchemy20: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
     "sqlalchemy20: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
     "sqlalchemy20: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
-    ]
+]
 testenv-commands = [
     "{envbindir}/test {posargs:-cv}",
     "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg {posargs:-cv} ; fi'",
     "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg2 {posargs:-cv} ; fi'",
     "sqlalchemy20: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg3 {posargs:-cv} ; fi'",
     "sqlalchemy20: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg32 {posargs:-cv} ; fi'",
-    ]
+]
 testenv-additional = [
     "passenv =",
     "    CI",
     "    TEST_PG",
     "allowlist_externals =",
     "    sh",
-    ]
+]
 use-flake8 = true
 
 [manifest]
@@ -59,7 +58,7 @@ additional-rules = [
     "include postgres20.cfg",
     "include pysqlite.cfg",
     "recursive-include src *.rst",
-    ]
+]
 
 [github-actions]
 steps-before-checkout = [
@@ -73,7 +72,5 @@ steps-before-checkout = [
     "    sudo su - postgres -c '/usr/lib/postgresql/14/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'",
     "    sudo su - postgres -c '/usr/lib/postgresql/14/bin/createdb zope_sqlalchemy_tests'",
     "    sudo su - postgres -c '/usr/lib/postgresql/14/bin/psql -l'",
-    ]
-test-commands = [
-    "tox -f ${{ matrix.config[1] }}",
-    ]
+]
+test-commands = ["tox -f ${{ matrix.config[1] }}"]
