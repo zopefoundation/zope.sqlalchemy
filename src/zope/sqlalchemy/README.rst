@@ -96,7 +96,7 @@ Full Example
 This example is lifted directly from the SQLAlchemy declarative documentation.
 First the necessary imports.
 
-    >>> from sqlalchemy import *
+    >>> from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
     >>> from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker, relationship
     >>> from sqlalchemy.sql import text
     >>> from zope.sqlalchemy import register
@@ -147,8 +147,10 @@ machinery, just as Zope's publisher would.
 
 Engine level connections are outside the scope of the transaction integration.
 
-    >>> engine.connect().execute(text('SELECT * FROM test_users')).fetchall()
+    >>> conn = engine.connect()
+    >>> conn.execute(text('SELECT * FROM test_users')).fetchall()
     [(1, ...'bob')]
+    >>> conn.close()
 
 A new transaction requires a new session. Let's add an address.
 
