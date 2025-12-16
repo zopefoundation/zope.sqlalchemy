@@ -1,8 +1,26 @@
 Changes
 =======
 
-3.2 (unreleased)
+4.2 (unreleased)
 ----------------
+
+- Nothing changed yet.
+
+
+4.1 (2025-11-25)
+----------------
+
+- Add support for Python 3.12, 3.13, 3.14.
+
+- Drop support for Python 3.7, 3.8, 3.9.
+
+- Remove no longer necessary ``setuptools`` runtime dependency.
+
+
+4.0 (2025-09-12)
+----------------
+
+- Replace ``pkg_resources`` namespace with PEP 420 native namespace.
 
 - SQLAlchemy's versions 2.0.32 up to 2.0.35 run into dead locks when running
   the tests on Python 3.11+, so excluding them from the list of supported
