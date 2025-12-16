@@ -75,7 +75,7 @@ STATUS_CHANGED = "changed"  # data has been written
 STATUS_READONLY = "readonly"
 STATUS_INVALIDATED = STATUS_CHANGED  # BBB
 
-NO_SAVEPOINT_SUPPORT = {"sqlite"}
+NO_SAVEPOINT_SUPPORT = set()
 
 _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
