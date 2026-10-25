@@ -4,6 +4,8 @@ Changes
 4.2 (unreleased)
 ----------------
 
+* Add support for Python 3.15.
+
 * Drop support for Python 3.10.
 
 
