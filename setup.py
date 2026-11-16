@@ -3,7 +3,10 @@ import os.path
 from setuptools import setup
 
 
-tests_require = ['zope.testing']
+tests_require = [
+    'packaging',
+    'zope.testing',
+]
 
 setup(
     name='zope.sqlalchemy',
@@ -31,19 +34,18 @@ setup(
         "License :: OSI Approved :: Zope Public License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Database",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    python_requires='>=3.10',
+    python_requires='>=3.11',
     install_requires=[
-        'packaging',
-        'SQLAlchemy>=1.2,!=1.4.0,!=1.4.1,!=1.4.2,!=1.4.3,!=1.4.4,!=1.4.5,!=1.4.6,!=2.0.32,!=2.0.33,!=2.0.34,!=2.0.35',  # noqa: E501 line too long
+        'SQLAlchemy>=1.4.7,!=2.0.32,!=2.0.33,!=2.0.34,!=2.0.35',
         'transaction>=1.6.0',
         'zope.interface>=3.6.0',
     ],

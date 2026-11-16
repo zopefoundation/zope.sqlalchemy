@@ -1,8 +1,8 @@
-# Generated from:
-# https://github.com/zopefoundation/meta/tree/master/config/zope-product
+# Generated with zope.meta (https://zopemeta.readthedocs.io/) from:
+# https://github.com/zopefoundation/meta/tree/master/src/zope/meta/zope-product
 [meta]
 template = "zope-product"
-commit-id = "46a5f4f9"
+commit-id = "1bebcaa5"
 
 [python]
 with-pypy = false
@@ -11,33 +11,32 @@ with-windows = false
 with-future-python = false
 with-macos = false
 with-docs = false
+with-free-threaded-python = false
 
 [coverage]
 fail-under = 65
 
 [tox]
 additional-envlist = [
-    "py{310}-sqlalchemy{12,13}",
-    "py{310,311,312,313,314}-sqlalchemy{14,20}",
+    "py{311,312,313,314,315}-sqlalchemy{14,20,21}",
 ]
 testenv-deps = [
-    "sqlalchemy12: SQLAlchemy==1.2.*",
-    "sqlalchemy13: SQLAlchemy==1.3.*",
     "sqlalchemy14: SQLAlchemy==1.4.*",
     "sqlalchemy20: SQLAlchemy==2.0.*",
+    "sqlalchemy21: SQLAlchemy==2.1.*",
 ]
 testenv-commands-pre = [
-    "!sqlalchemy20: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
-    "!sqlalchemy20: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
-    "sqlalchemy20: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
-    "sqlalchemy20: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "sqlalchemy14: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "!sqlalchemy14: sh -c 'if [ '{env:CI:false}' = 'true' ]; then {envbindir}/buildout -nc {toxinidir}/github_actions20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "sqlalchemy14: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
+    "!sqlalchemy14: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
 ]
 testenv-commands = [
     "{envbindir}/test {posargs:-cv}",
     "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg {posargs:-cv} ; fi'",
     "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg2 {posargs:-cv} ; fi'",
-    "sqlalchemy20: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg3 {posargs:-cv} ; fi'",
-    "sqlalchemy20: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg32 {posargs:-cv} ; fi'",
+    "!sqlalchemy14: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg3 {posargs:-cv} ; fi'",
+    "!sqlalchemy14: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg32 {posargs:-cv} ; fi'",
 ]
 testenv-additional = [
     "passenv =",
@@ -66,11 +65,12 @@ steps-before-checkout = [
     "  run: |",
     "    sudo mkdir -p /usr/local/pgsql/data",
     "    sudo chown postgres /usr/local/pgsql/data",
-    "    sudo su - postgres -c '/usr/lib/postgresql/16/bin/initdb -D /usr/local/pgsql/data'",
+    "    PGBIN=$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -n 1)",
+    "    sudo su - postgres -c \"$PGBIN/initdb -D /usr/local/pgsql/data\"",
     "    sudo su - postgres -c 'echo \"max_prepared_transactions=10\" >> /usr/local/pgsql/data/postgresql.conf'",
     "    sudo su - postgres -c 'cat /usr/local/pgsql/data/postgresql.conf'",
-    "    sudo su - postgres -c '/usr/lib/postgresql/16/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start'",
-    "    sudo su - postgres -c '/usr/lib/postgresql/16/bin/createdb zope_sqlalchemy_tests'",
-    "    sudo su - postgres -c '/usr/lib/postgresql/16/bin/psql -l'",
+    "    sudo su - postgres -c \"$PGBIN/pg_ctl -D /usr/local/pgsql/data -l logfile start\"",
+    "    sudo su - postgres -c \"$PGBIN/createdb zope_sqlalchemy_tests\"",
+    "    sudo su - postgres -c \"$PGBIN/psql -l\"",
 ]
 test-commands = ["uvx --with tox-uv tox -f ${{ matrix.config[1] }}"]
