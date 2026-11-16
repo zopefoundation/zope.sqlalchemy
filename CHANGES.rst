@@ -8,6 +8,10 @@ Changes
 
 * Drop support for Python 3.10.
 
+* Add support for SQLAlchemy 2.1.
+
+* Drop support for SQLAlchemy < 1.4.
+
 
 4.1 (2025-11-25)
 ----------------

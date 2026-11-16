@@ -16,8 +16,6 @@
 from weakref import WeakKeyDictionary
 
 import transaction as zope_transaction
-from packaging.version import Version as parse_version
-from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm.exc import ConcurrentModificationError
@@ -80,8 +78,6 @@ NO_SAVEPOINT_SUPPORT = {"sqlite"}
 _SESSION_STATE = WeakKeyDictionary()  # a mapping of session -> status
 # This is thread safe because you are using scoped sessions
 
-SA_GE_14 = parse_version(sqlalchemy_version) >= parse_version('1.4.0')
-
 
 #
 # The two variants of the DataManager.
@@ -101,18 +97,7 @@ class SessionDataManager:
             self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
 
-        if SA_GE_14:
-            root_transaction = session.get_transaction() or session.begin()
-        else:
-            # Support both SQLAlchemy 1.0 and 1.1
-            # https://github.com/zopefoundation/zope.sqlalchemy/issues/15
-            _iterate_parents = (
-                getattr(session.transaction, "_iterate_self_and_parents", None)
-                or session.transaction._iterate_parents
-            )
-            root_transaction = _iterate_parents()[-1]
-
-        self.tx = root_transaction
+        self.tx = session.get_transaction() or session.begin()
         self.session = session
         transaction_manager.get().join(self)
         _SESSION_STATE[session] = status
@@ -322,14 +307,8 @@ class ZopeTransactionEvents:
                      self.transaction_manager, self.keep_session)
 
     def before_commit(self, session):
-        in_nested_transaction = (
-            session.in_nested_transaction()
-            if SA_GE_14
-            # support sqlalchemy 1.3 and below
-            else session.transaction.nested
-        )
         assert (
-            in_nested_transaction
+            session.in_nested_transaction()
             or self.transaction_manager.get().status == ZopeStatus.COMMITTING
         ), "Transaction must be committed using the transaction manager"
 
@@ -392,8 +371,6 @@ def register(
     event.listen(session, "after_bulk_update", ext.after_bulk_update)
     event.listen(session, "after_bulk_delete", ext.after_bulk_delete)
     event.listen(session, "before_commit", ext.before_commit)
-
-    if SA_GE_14:
-        event.listen(session, "do_orm_execute", ext.do_orm_execute)
+    event.listen(session, "do_orm_execute", ext.do_orm_execute)
 
     return ext

@@ -3,7 +3,10 @@ import os.path
 from setuptools import setup
 
 
-tests_require = ['zope.testing']
+tests_require = [
+    'packaging',
+    'zope.testing',
+]
 
 setup(
     name='zope.sqlalchemy',
@@ -42,8 +45,7 @@ setup(
     ],
     python_requires='>=3.11',
     install_requires=[
-        'packaging',
-        'SQLAlchemy>=1.2,!=1.4.0,!=1.4.1,!=1.4.2,!=1.4.3,!=1.4.4,!=1.4.5,!=1.4.6,!=2.0.32,!=2.0.33,!=2.0.34,!=2.0.35',  # noqa: E501 line too long
+        'SQLAlchemy>=1.4.7,!=2.0.32,!=2.0.33,!=2.0.34,!=2.0.35',
         'transaction>=1.6.0',
         'zope.interface>=3.6.0',
     ],
