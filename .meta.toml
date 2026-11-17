@@ -14,13 +14,15 @@ with-docs = false
 with-free-threaded-python = false
 
 [coverage]
-fail-under = 65
+fail-under = 95
+combine = true
 
 [tox]
 additional-envlist = [
     "py{311,312,313,314,315}-sqlalchemy{14,20,21}",
 ]
 testenv-deps = [
+    "coverage[toml]",
     "sqlalchemy14: SQLAlchemy==1.4.*",
     "sqlalchemy20: SQLAlchemy==2.0.*",
     "sqlalchemy21: SQLAlchemy==2.1.*",
@@ -32,11 +34,14 @@ testenv-commands-pre = [
     "!sqlalchemy14: sh -c 'if [ '{env:CI:false}' != 'true' ]; then {envbindir}/buildout -nc {toxinidir}/postgres20.cfg buildout:directory={envdir} buildout:develop={toxinidir} ; fi'",
 ]
 testenv-commands = [
-    "{envbindir}/test {posargs:-cv}",
-    "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg {posargs:-cv} ; fi'",
-    "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg2 {posargs:-cv} ; fi'",
-    "!sqlalchemy14: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg3 {posargs:-cv} ; fi'",
-    "!sqlalchemy14: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then {envbindir}/testpg32 {posargs:-cv} ; fi'",
+    "coverage run {envbindir}/test {posargs:-cv}",
+    "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then coverage run -a {envbindir}/testpg {posargs:-cv} ; fi'",
+    "sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then coverage run -a {envbindir}/testpg2 {posargs:-cv} ; fi'",
+    "!sqlalchemy14: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then coverage run -a {envbindir}/testpg3 {posargs:-cv} ; fi'",
+    "!sqlalchemy14: sh -c 'if [ '{env:TEST_PG:{env:CI:false}}' = 'true' ]; then coverage run -a {envbindir}/testpg32 {posargs:-cv} ; fi'",
+]
+coverage-additional = [
+    "commands_pre =",
 ]
 testenv-additional = [
     "passenv =",
@@ -72,7 +77,9 @@ steps-before-checkout = [
     "    sudo su - postgres -c \"$PGBIN/createdb zope_sqlalchemy_tests\"",
     "    sudo su - postgres -c \"$PGBIN/psql -l\"",
 ]
-test-commands = ["uvx --with tox-uv tox -f ${{ matrix.config[1] }}"]
+test-commands = [
+    "uvx --with tox-uv tox ${{ matrix.config[1] == 'coverage' && '--skip-env \"(lint|release-check)\"' || format('-f {0}', matrix.config[1]) }}",
+]
 
 [pypi]
 trusted-publishing = true
