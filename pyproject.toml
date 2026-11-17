@@ -7,6 +7,56 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+
+[project]
+name = "zope.sqlalchemy"
+version = "4.2.dev0"
+description = "Minimal Zope/SQLAlchemy transaction integration"
+license = "ZPL-2.1"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Pyramid",
+    "Framework :: Zope :: 3",
+    "Framework :: Zope :: 5",
+    "Framework :: Zope :: 6",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["readme"]
+requires-python = ">=3.11"
+authors = [
+    {name = "Laurence Rowe",email = "laurence@lrowe.co.uk"},
+]
+maintainers = [
+    {name = "Plone Foundation and contributors",email = "zope-dev@zope.dev"},
+]
+dependencies = [
+    "SQLAlchemy>=1.4.7,!=2.0.32,!=2.0.33,!=2.0.34,!=2.0.35",
+    "transaction>=1.6.0",
+    "zope.interface>=3.6.0",
+]
+keywords = ["zope", "zope3", "sqlalchemy"]
+
+[project.optional-dependencies]
+test = [
+    "packaging",
+    "zope.testing",
+]
+
+[project.urls]
+Source = "https://github.com/zopefoundation/zope.sqlalchemy"
+Issues = "https://github.com/zopefoundation/zope.sqlalchemy/issues"
+Changelog = "https://raw.githubusercontent.com/zopefoundation/zope.sqlalchemy/master/CHANGES.rst"
+
 [tool.coverage.run]
 branch = true
 source = ["zope.sqlalchemy"]
@@ -29,3 +79,7 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = "parts/htmlcov"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "src/zope/sqlalchemy/README.rst", "CHANGES.rst"]}
+
