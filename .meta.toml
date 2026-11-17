@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/src/zope/meta/zope-product
 [meta]
 template = "zope-product"
-commit-id = "1bebcaa5"
+commit-id = "52a3ad89"
 
 [python]
 with-pypy = false
@@ -45,7 +45,6 @@ testenv-additional = [
     "allowlist_externals =",
     "    sh",
 ]
-use-flake8 = true
 
 [manifest]
 additional-rules = [
@@ -74,3 +73,6 @@ steps-before-checkout = [
     "    sudo su - postgres -c \"$PGBIN/psql -l\"",
 ]
 test-commands = ["uvx --with tox-uv tox -f ${{ matrix.config[1] }}"]
+
+[pypi]
+trusted-publishing = true
