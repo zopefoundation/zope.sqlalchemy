@@ -59,9 +59,10 @@ Changelog = "https://raw.githubusercontent.com/zopefoundation/zope.sqlalchemy/ma
 [tool.coverage.run]
 branch = true
 source = ["zope.sqlalchemy"]
+relative_files = true
 
 [tool.coverage.report]
-fail_under = 65
+fail_under = 95
 precision = 2
 ignore_errors = true
 show_missing = true

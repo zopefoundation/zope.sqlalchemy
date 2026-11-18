@@ -60,7 +60,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Test
       run: |
-        uvx --with tox-uv tox -f ${{ matrix.config[1] }}
+        uvx --with tox-uv tox ${{ matrix.config[1] == 'coverage' && '--skip-env "(lint|release-check)"' || format('-f {0}', matrix.config[1]) }}
     - name: Coverage
       if: matrix.config[1] == 'coverage'
       run: |
