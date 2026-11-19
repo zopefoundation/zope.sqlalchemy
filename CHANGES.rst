@@ -4,8 +4,6 @@ Changes
 4.2 (unreleased)
 ----------------
 
-* Move package metadata from setup.py to pyproject.toml.
-
 * Add support for Python 3.15.
 
 * Drop support for Python 3.10.
@@ -14,6 +12,7 @@ Changes
 
 * Drop support for SQLAlchemy < 1.4.
 
+* Move package metadata from setup.py to pyproject.toml.
 
 4.1 (2025-11-25)
 ----------------
