@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zope.sqlalchemy"
-version = "4.2.dev0"
+version = "4.2"
 description = "Minimal Zope/SQLAlchemy transaction integration"
 license = "ZPL-2.1"
 classifiers = [
